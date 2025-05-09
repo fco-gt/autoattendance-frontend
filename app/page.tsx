@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Building2, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/theme-toggle";
+import { ModeToggle } from "@/components/providers/theme-toggle";
 
 export default function Home() {
   return (

@@ -1,30 +1,32 @@
 import { apiClient } from "./apiClient";
+import { useAuthStore } from "@/stores/useAuth";
+import type { AuthAgencyResponse, UserFrontend } from "@/types/FrontendTypes";
+import { setCookie } from "./auth";
 
 export const registerAgency = (body: {
   name: string;
   domain: string;
   password: string;
-  address: string;
-  phone: string;
-}) =>
-  apiClient("/agencies/register", {
+  address?: string;
+  phone?: string;
+}): Promise<AuthAgencyResponse> =>
+  apiClient<AuthAgencyResponse>("/agencies/register", {
     method: "POST",
     body: JSON.stringify(body),
   });
 
-export const loginAgency = (body: { domain: string; password: string }) =>
-  apiClient("/agencies/login", {
+export async function loginAgency(domain: string, password: string) {
+  const res = await apiClient<AuthAgencyResponse>("/agencies/login", {
     method: "POST",
-    body: JSON.stringify(body),
+    body: JSON.stringify({ domain, password }),
   });
+  useAuthStore.getState().setSubject({ type: "agency", data: res.agency });
 
-// Endpoints protegidos con token de agencia:
-export const fetchMyAgency = () => apiClient("/agencies/me", { method: "GET" });
-export const updateAgency = (
-  body: Partial<{ name: string; phone: string; address: string }>
-) => apiClient("/agencies/me", { method: "PATCH", body: JSON.stringify(body) });
-export const inviteUser = (body: { email: string }) =>
-  apiClient("/agencies/invite-user", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  if (res.token) {
+    await setCookie(res.token, "agency");
+  }
+  return res;
+}
+
+export const fetchAgencyUsers = () =>
+  apiClient<UserFrontend[]>("/agencies/me/users", { method: "GET" });

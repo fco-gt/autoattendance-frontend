@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Building2, Loader2, User, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,28 +17,69 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
+import { loginUser } from "@/lib/api/users";
+import { loginAgency } from "@/lib/api/agencies";
+import { useAuthStore } from "@/stores/useAuth";
+
 export default function LoginPage() {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const router = useRouter();
+  const setSubject = useAuthStore((state) => state.setSubject);
+
+  // Estado general
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Datos de usuario
   const [userEmail, setUserEmail] = useState("");
   const [userPassword, setUserPassword] = useState("");
+
+  // Datos de agencia
   const [agencyEmail, setAgencyEmail] = useState("");
   const [agencyPassword, setAgencyPassword] = useState("");
-  const [isOperating, setIsOperating] = useState(false);
 
-  const handleLoginStub = (actor: "user" | "agency", e: React.FormEvent) => {
+  // User Handler
+  const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(null);
-    setIsOperating(true);
-    // Simulación de llamada a API de prueba
-    setTimeout(() => {
-      setIsOperating(false);
-      toast(`Inicio de sesión de prueba (${actor})`, {
-        description: "Esta es una respuesta simulada.",
-      });
-    }, 1000);
+    setLoginError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await loginUser(userEmail, userPassword);
+      setSubject({ type: "user", data: response.user });
+      toast(response.message || "Inicio de sesión exitoso");
+      router.push("/empleado/dashboard");
+    } catch (err: any) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Error desconocido";
+      setLoginError(errorMessage);
+      toast.error(errorMessage);
+      setIsLoading(false);
+      console.error(err);
+    }
+  };
+
+  // Agency Handler
+  const handleAgencyLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError(null);
+    setIsLoading(true);
+
+    try {
+      const response = await loginAgency(agencyEmail, agencyPassword);
+      setSubject({ type: "agency", data: response.agency });
+      toast(response.message || "Inicio de sesión exitoso");
+      router.push("/agencia/dashboard");
+    } catch (err: any) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Error desconocido";
+      setLoginError(errorMessage);
+      toast.error(errorMessage);
+      setIsLoading(false);
+      console.error(err);
+    }
   };
 
   return (
@@ -52,10 +94,11 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {errorMessage && (
+        {loginError && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <p>{errorMessage}</p>
+            <AlertTitle>Error de Inicio de Sesión</AlertTitle>
+            <AlertDescription>{loginError}</AlertDescription>
           </Alert>
         )}
 
@@ -83,7 +126,7 @@ export default function LoginPage() {
                   Ingresa tu correo y contraseña para acceder a tu cuenta
                 </CardDescription>
               </CardHeader>
-              <form onSubmit={(e) => handleLoginStub("user", e)}>
+              <form onSubmit={handleUserLogin}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="user-email">Correo electrónico</Label>
@@ -94,6 +137,7 @@ export default function LoginPage() {
                       value={userEmail}
                       onChange={(e) => setUserEmail(e.target.value)}
                       required
+                      disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -116,12 +160,8 @@ export default function LoginPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="mt-6">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isOperating}
-                  >
-                    {isOperating && (
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Iniciar Sesión
@@ -139,7 +179,7 @@ export default function LoginPage() {
                   Ingresa el correo y contraseña de tu agencia para acceder
                 </CardDescription>
               </CardHeader>
-              <form onSubmit={(e) => handleLoginStub("agency", e)}>
+              <form onSubmit={handleAgencyLogin}>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="agency-email">Correo electrónico</Label>
@@ -172,12 +212,8 @@ export default function LoginPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="mt-6">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={isOperating}
-                  >
-                    {isOperating && (
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Iniciar Sesión

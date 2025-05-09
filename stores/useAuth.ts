@@ -1,9 +1,21 @@
 import { create } from "zustand";
-import { AuthState } from "@/types/User";
+import type { UserFrontend, AgencyFrontend } from "@/types/FrontendTypes";
+
+type AuthenticatedSubject =
+  | { type: "user"; data: UserFrontend }
+  | { type: "agency"; data: AgencyFrontend };
+
+interface AuthState {
+  subject: AuthenticatedSubject | null;
+  setSubject: (subject: AuthenticatedSubject | null) => void;
+  logout: () => void;
+}
 
 export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
-  user: null,
-  setAuth: (token, user) => set({ token: token, user: user }),
-  logout: () => set({ token: null, user: null }),
+  subject: null,
+  setSubject: (subject) => set({ subject }),
+  logout: () => set({ subject: null }),
 }));
+
+export const useAuthenticatedSubject = () =>
+  useAuthStore((state) => state.subject);
