@@ -42,7 +42,7 @@ const attendanceFormSchema = z.object({
   notes: z.string().optional(),
 });
 
-type AttendanceFormValues = z.infer<typeof attendanceFormSchema>;
+export type AttendanceFormValues = z.infer<typeof attendanceFormSchema>;
 
 interface AttendanceFormDialogProps {
   open: boolean;
