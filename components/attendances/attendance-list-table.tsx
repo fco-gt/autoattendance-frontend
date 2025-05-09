@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
+  formatAttendanceTime,
   formatTime,
   getMethodText,
   getStatusBadgeVariant,
@@ -52,7 +53,7 @@ export function AttendanceTable({
             <TableCell>
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                <span>{formatTime(attendance.checkInTime)}</span>
+                <span>{formatAttendanceTime(attendance.checkInTime)}</span>
               </div>
               <div className="text-xs text-muted-foreground">
                 Programada: {formatTime(attendance.scheduleEntryTime)}
@@ -61,7 +62,7 @@ export function AttendanceTable({
             <TableCell>
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                <span>{formatTime(attendance.checkOutTime)}</span>
+                <span>{formatAttendanceTime(attendance.checkOutTime)}</span>
               </div>
               <div className="text-xs text-muted-foreground">
                 Programada: {formatTime(attendance.scheduleExitTime)}

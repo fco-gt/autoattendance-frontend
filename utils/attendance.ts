@@ -31,3 +31,14 @@ export const getMethodText = (method: AttendanceMethod) => {
       return method;
   }
 };
+
+// Función para formatear la hora de asistencia (Formato que entra: 2025-05-09T20:40)
+export const formatAttendanceTime = (time: string) => {
+  if (!time) return "—";
+
+  const date = new Date(time);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+
+  return `${hours}:${minutes}`;
+};

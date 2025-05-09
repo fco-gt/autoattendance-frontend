@@ -30,3 +30,13 @@ export async function loginAgency(domain: string, password: string) {
 
 export const fetchAgencyUsers = () =>
   apiClient<UserFrontend[]>("/agencies/me/users", { method: "GET" });
+
+export const inviteUser = (body: {
+  email: string;
+  name: string;
+  lastname?: string;
+}) =>
+  apiClient<UserFrontend>("/agencies/invite-user", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
