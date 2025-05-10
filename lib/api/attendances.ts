@@ -28,3 +28,10 @@ export async function getAttendanceHistory(params: {
     method: "GET",
   });
 }
+
+// Get User Attendance Today
+export function getUserAttendanceToday(): Promise<Attendance> {
+  return apiClient<Attendance>("/attendance/today", {
+    method: "GET",
+  });
+}

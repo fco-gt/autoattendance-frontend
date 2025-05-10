@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScheduleListSkeleton } from "./schedule-list-skeleton";
-import { ScheduleFormDialog } from "@/components/schedules/schedule-form-dialog";
+import { ScheduleFormDialog } from "@/components/agency/schedules/schedule-form-dialog";
 import type { Schedule } from "@/types/FrontendTypes";
 import { getDayNames } from "@/utils/scheduleDaysFormat";
 

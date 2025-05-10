@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAttendanceHistory, manualAttendance } from "@/lib/api/attendances";
+import {
+  getAttendanceHistory,
+  getUserAttendanceToday,
+  manualAttendance,
+} from "@/lib/api/attendances";
 import type { Attendance } from "@/types/FrontendTypes";
 
 type ManualAttendanceVariables = Parameters<typeof manualAttendance>[0];
@@ -23,5 +27,15 @@ export function useManualAttendance() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["attendance"] });
     },
+  });
+}
+
+// Hooks para usuarios
+export function useUserAttendanceToday() {
+  return useQuery<Attendance, Error>({
+    queryKey: ["attendanceToday"],
+    queryFn: getUserAttendanceToday,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
   });
 }

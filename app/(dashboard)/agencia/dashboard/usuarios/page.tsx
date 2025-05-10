@@ -12,14 +12,14 @@ import { UserPlus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmployeesTable } from "@/components/employees/employees-table";
+import { EmployeesTable } from "@/components/agency/employees/employees-table";
 import {
   InviteUserDialog,
   InviteUserFormValues,
-} from "@/components/employees/invite-user-dialog";
-import { EditUserDialog } from "@/components/employees/edit-user-dialog";
-import { DeleteUserDialog } from "@/components/employees/delete-user-dialog";
-import { EmployeesTableSkeleton } from "@/components/employees/employees-table-skeleton";
+} from "@/components/agency/employees/invite-user-dialog";
+import { EditUserDialog } from "@/components/agency/employees/edit-user-dialog";
+import { DeleteUserDialog } from "@/components/agency/employees/delete-user-dialog";
+import { EmployeesTableSkeleton } from "@/components/agency/employees/employees-table-skeleton";
 import type { UserFrontend } from "@/types/FrontendTypes";
 
 export default function EPage() {

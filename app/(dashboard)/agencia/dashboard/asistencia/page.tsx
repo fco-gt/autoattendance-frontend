@@ -11,13 +11,13 @@ import { useAgencyUsers } from "@/hooks/useAgency";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DatePickerWithRange } from "@/components/attendances/date-range-picker";
-import { AttendanceTable } from "@/components/attendances/attendance-list-table";
-import { AttendanceFormDialog } from "@/components/attendances/attendance-form-dialog";
-import { AttendanceHistorySkeleton } from "@/components/attendances/attendance-history-skeleton";
+import { DatePickerWithRange } from "@/components/agency/attendances/date-range-picker";
+import { AttendanceTable } from "@/components/agency/attendances/attendance-list-table";
+import { AttendanceFormDialog } from "@/components/agency/attendances/attendance-form-dialog";
+import { AttendanceHistorySkeleton } from "@/components/agency/attendances/attendance-history-skeleton";
 import { DateRange } from "react-day-picker";
 
-import type { AttendanceFormValues } from "@/components/attendances/attendance-form-dialog";
+import type { AttendanceFormValues } from "@/components/agency/attendances/attendance-form-dialog";
 
 export default function AttendancePage() {
   const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);

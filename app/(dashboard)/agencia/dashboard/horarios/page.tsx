@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import ScheduleList from "@/components/schedules/schedule-list-table";
+import ScheduleList from "@/components/agency/schedules/schedule-list-table";
 
 export default function ScheduleListPage() {
   const { data: schedules, isLoading } = useSchedules();
