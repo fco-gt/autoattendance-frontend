@@ -33,9 +33,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <StoreInitializer>
-            <QueryProvider>{children}</QueryProvider>
-          </StoreInitializer>
+          <QueryProvider>
+            <StoreInitializer>{children}</StoreInitializer>
+          </QueryProvider>
           <Toaster />
         </ThemeProvider>
       </body>

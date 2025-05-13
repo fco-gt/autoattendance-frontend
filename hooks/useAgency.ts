@@ -1,4 +1,3 @@
-// src/hooks/useAgency.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchAgencyUsers, inviteUser } from "@/lib/api/agencies";
 import type { UserFrontend } from "@/types/FrontendTypes";

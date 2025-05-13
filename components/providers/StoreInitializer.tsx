@@ -1,37 +1,25 @@
-"use client";
-
-import { ReactNode, useRef, useEffect } from "react";
-import { useAuthStore } from "@/stores/useAuth";
-import axios from "axios";
-import { AuthenticatedSubject } from "@/types/FrontendTypes";
+"use client"
+import { type ReactNode, useEffect } from "react"
+import { useAuthStore } from "@/stores/useAuth"
+import { useCurrentUser } from "@/hooks/useCurrentUser"
+import { LoadingScreen } from "@/components/providers/common/loading-screen"
 
 export function StoreInitializer({ children }: { children: ReactNode }) {
-  const initialized = useRef(false);
-  const setSubject = useAuthStore((s) => s.setSubject);
-  const logout = useAuthStore((s) => s.logout);
+  const { data: subject, isLoading, error } = useCurrentUser()
+  const setSubject = useAuthStore((s) => s.setSubject)
+  const logout = useAuthStore((s) => s.logout)
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-
-    async function init() {
-      try {
-        const res = await axios.get<AuthenticatedSubject>("/api/auth/me", {
-          withCredentials: true,
-        });
-
-        if (!res.data) {
-          return;
-        }
-
-        setSubject(res.data);
-      } catch {
-        logout();
-      }
+    if (subject) {
+      setSubject(subject)
+    } else if (error) {
+      logout()
     }
+  }, [subject, error, setSubject, logout])
 
-    init();
-  }, [setSubject, logout]);
+  if (isLoading) {
+    return <LoadingScreen message="Verificando sesión..." />
+  }
 
-  return <>{children}</>;
+  return <>{children}</>
 }
