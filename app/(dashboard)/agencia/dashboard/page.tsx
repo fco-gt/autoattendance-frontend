@@ -1,10 +1,10 @@
 "use client";
 
-import { UserTable } from "@/components/dashboard/data-table";
-import { SectionCards } from "@/components/dashboard/section-cards";
+import { UserTable } from "@/components/agency/data-table";
+import { SectionCards } from "@/components/agency/section-cards";
 import { useAgencyUsers } from "@/hooks/useAgency";
-import { SectionCardsSkeleton } from "@/components/dashboard/section-cards-skeleton";
-import { DataTableSkeleton } from "@/components/dashboard/data-table-skeleton";
+import { SectionCardsSkeleton } from "@/components/agency/section-cards-skeleton";
+import { DataTableSkeleton } from "@/components/agency/data-table-skeleton";
 import { useAuthStore } from "@/stores/useAuth";
 
 export default function Page() {

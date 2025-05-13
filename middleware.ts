@@ -1,4 +1,3 @@
-// middleware.ts
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
@@ -21,23 +20,18 @@ export async function middleware(request: NextRequest) {
   } else if (pathname.startsWith("/agencia")) {
     cookieName = "auth_agency";
   } else {
-    // No es ruta protegida
     return NextResponse.next();
   }
 
-  // Recupera el valor de la cookie
   const cookieValue = request.cookies.get(cookieName)?.value;
   if (!cookieValue) {
-    // Sin cookie, redirige a login
     const loginUrl = new URL("/login", origin);
     loginUrl.searchParams.set("callbackUrl", pathname + search);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Prepara el header de cookies para reenviar al endpoint interno
   const cookieHeader = request.headers.get("cookie") || "";
-
-  // Valida la sesión llamando a tu BFF interno
+  
   const apiRes = await fetch(`${origin}/api/auth/me`, {
     headers: {
       cookie: cookieHeader,
@@ -46,7 +40,6 @@ export async function middleware(request: NextRequest) {
   });
 
   if (!apiRes.ok) {
-    // Sesión inválida: elimina la cookie y redirige
     const loginUrl = new URL("/login", origin);
     loginUrl.searchParams.set("callbackUrl", pathname + search);
     const response = NextResponse.redirect(loginUrl);
@@ -54,7 +47,6 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Sesión válida: permitir continuación
   return NextResponse.next();
 }
 

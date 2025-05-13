@@ -26,8 +26,6 @@ export default function Page() {
       return;
     }
 
-    if (step !== "loading") return;
-
     (async () => {
       try {
         await verifyToken.mutateAsync({ activationCode: token });
@@ -41,7 +39,7 @@ export default function Page() {
         setStep("error");
       }
     })();
-  }, [token, router, step, verifyToken]);
+  }, [token, router]);
 
   const handleRetry = () => {
     if (token) {
