@@ -237,15 +237,6 @@ export function UserTable({ users }: UserTableProps) {
     },
   ];
 
-  // Aplicar filtro de estado cuando cambia
-  React.useEffect(() => {
-    if (statusFilter === "") {
-      table.getColumn("status")?.setFilterValue(undefined);
-    } else {
-      table.getColumn("status")?.setFilterValue(statusFilter);
-    }
-  }, [statusFilter]);
-
   const table = useReactTable({
     data: users,
     columns,
@@ -265,6 +256,15 @@ export function UserTable({ users }: UserTableProps) {
       globalFilter,
     },
   });
+
+  // Aplicar filtro de estado cuando cambia
+  React.useEffect(() => {
+    if (statusFilter === "") {
+      table.getColumn("status")?.setFilterValue(undefined);
+    } else {
+      table.getColumn("status")?.setFilterValue(statusFilter);
+    }
+  }, [statusFilter, table]);
 
   return (
     <Card className="w-full">

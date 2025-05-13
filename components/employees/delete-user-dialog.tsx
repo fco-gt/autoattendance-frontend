@@ -18,7 +18,7 @@ interface DeleteUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: UserFrontend;
-  onConfirm: () => Promise<any>;
+  onConfirm: () => Promise<{ success: boolean; id: string }>;
   isLoading: boolean;
 }
 

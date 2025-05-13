@@ -31,6 +31,8 @@ interface EmployeesTableProps {
   onDelete: (user: UserFrontend) => void;
 }
 
+type variants = "destructive" | "outline" | "default" | "secondary";
+
 // Función para obtener el color del badge según el estado
 const getStatusBadgeVariant = (status: string) => {
   switch (status) {
@@ -104,7 +106,7 @@ export function EmployeesTable({
             </TableCell>
             <TableCell>{user.email}</TableCell>
             <TableCell>
-              <Badge variant={getStatusBadgeVariant(user.status) as any}>
+              <Badge variant={getStatusBadgeVariant(user.status) as variants}>
                 {getStatusText(user.status)}
               </Badge>
             </TableCell>

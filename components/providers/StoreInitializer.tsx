@@ -3,11 +3,7 @@
 import { ReactNode, useRef, useEffect } from "react";
 import { useAuthStore } from "@/stores/useAuth";
 import axios from "axios";
-
-interface MeResponse {
-  type: "user" | "agency";
-  data: any;
-}
+import { AuthenticatedSubject } from "@/types/FrontendTypes";
 
 export function StoreInitializer({ children }: { children: ReactNode }) {
   const initialized = useRef(false);
@@ -20,12 +16,15 @@ export function StoreInitializer({ children }: { children: ReactNode }) {
 
     async function init() {
       try {
-        const res = await axios.get<MeResponse>("/api/auth/me", {
+        const res = await axios.get<AuthenticatedSubject>("/api/auth/me", {
           withCredentials: true,
         });
 
-        const { type, data } = res.data;
-        setSubject({ type, data });
+        if (!res.data) {
+          return;
+        }
+
+        setSubject(res.data);
       } catch {
         logout();
       }

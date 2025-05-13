@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Clock, Save } from "lucide-react";
-import type { UserFrontend } from "@/types/FrontendTypes";
+import type { Attendance, UserFrontend } from "@/types/FrontendTypes";
 
 import {
   Dialog,
@@ -47,7 +47,7 @@ export type AttendanceFormValues = z.infer<typeof attendanceFormSchema>;
 interface AttendanceFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: AttendanceFormValues) => Promise<any>;
+  onSubmit: (data: AttendanceFormValues) => Promise<Attendance>;
   title: string;
   description: string;
   type: "check-in" | "check-out";

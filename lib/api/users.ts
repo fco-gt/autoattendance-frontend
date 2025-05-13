@@ -1,10 +1,7 @@
 import { apiClient } from "./apiClient";
 import { useAuthStore } from "@/stores/useAuth";
 import { setCookie } from "./auth";
-import type {
-  AuthAgencyResponse,
-  AuthUserResponse,
-} from "@/types/FrontendTypes";
+import type { AuthUserResponse } from "@/types/FrontendTypes";
 
 export async function loginUser(email: string, password: string) {
   const res = await apiClient<AuthUserResponse>("/users/login", {

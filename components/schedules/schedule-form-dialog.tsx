@@ -64,13 +64,13 @@ const scheduleFormSchema = z.object({
   isDefault: z.boolean(),
 });
 
-type ScheduleFormValues = z.infer<typeof scheduleFormSchema>;
+export type ScheduleFormValues = z.infer<typeof scheduleFormSchema>;
 
 interface ScheduleFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   schedule?: Schedule;
-  onSubmit: (data: ScheduleFormValues) => void;
+  onSubmit: (data: ScheduleFormValues) => Promise<Schedule>;
   title: string;
   description: string;
 }

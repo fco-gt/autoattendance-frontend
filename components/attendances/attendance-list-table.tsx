@@ -24,6 +24,8 @@ interface AttendanceTableProps {
   getUserName: (userId: string) => string;
 }
 
+type variants = "destructive" | "outline" | "default" | "secondary";
+
 export function AttendanceTable({
   attendances,
   getUserName,
@@ -69,7 +71,9 @@ export function AttendanceTable({
               </div>
             </TableCell>
             <TableCell>
-              <Badge variant={getStatusBadgeVariant(attendance.status) as any}>
+              <Badge
+                variant={getStatusBadgeVariant(attendance.status) as variants}
+              >
                 {attendance.status === "ON_TIME" ? "A tiempo" : "Tarde"}
               </Badge>
             </TableCell>

@@ -51,7 +51,7 @@ export default function LoginPage() {
       setSubject({ type: "user", data: response.user });
       toast(response.message || "Inicio de sesión exitoso");
       router.push("/empleado/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";
       setLoginError(errorMessage);
@@ -72,7 +72,7 @@ export default function LoginPage() {
       setSubject({ type: "agency", data: response.agency });
       toast(response.message || "Inicio de sesión exitoso");
       router.push("/agencia/dashboard");
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";
       setLoginError(errorMessage);

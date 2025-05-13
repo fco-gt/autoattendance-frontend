@@ -40,11 +40,7 @@ export default function AttendancePage() {
     isLoading,
     error,
   } = useAttendanceHistory(apiDateRange);
-  const {
-    data: users,
-    error: usersError,
-    isLoading: usersLoading,
-  } = useAgencyUsers();
+  const { data: users, isLoading: usersLoading } = useAgencyUsers();
   const manual = useManualAttendance();
 
   // Función para abrir el modal de asistencia

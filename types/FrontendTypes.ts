@@ -36,6 +36,14 @@ export interface AgencyFrontend {
 }
 
 /**
+ * Respuesta de validacion /me
+ */
+
+export type AuthenticatedSubject =
+  | { type: "user"; data: UserFrontend }
+  | { type: "agency"; data: AgencyFrontend };
+
+/**
  * Respuesta de autenticación con token y datos de usuario.
  */
 export interface AuthUserResponse {
@@ -108,3 +116,11 @@ export enum AttendanceMethod {
   QR = "QR",
   NFC = "NFC",
 }
+
+export type CreateSchedulePayload = Omit<
+  Schedule,
+  "id" | "createdAt" | "updatedAt"
+>;
+export type UpdateSchedulePayload = Partial<
+  Omit<Schedule, "id" | "agencyId" | "createdAt" | "updatedAt">
+>;

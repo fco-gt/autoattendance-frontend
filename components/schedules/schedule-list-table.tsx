@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  useSchedules,
   useDeleteSchedule,
   useCreateSchedule,
   useUpdateSchedule,
@@ -20,22 +19,33 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScheduleListSkeleton } from "./schedule-list-skeleton";
-import { ScheduleFormDialog } from "@/components/schedules/schedule-form-dialog";
-import type { Schedule } from "@/types/FrontendTypes";
+import {
+  ScheduleFormDialog,
+  ScheduleFormValues,
+} from "@/components/schedules/schedule-form-dialog";
+import type {
+  CreateSchedulePayload,
+  Schedule,
+  UpdateSchedulePayload,
+} from "@/types/FrontendTypes";
 import { getDayNames } from "@/utils/scheduleDaysFormat";
-
-// Función para convertir números de días a texto
+import { useAuthStore } from "@/stores/useAuth";
 
 export default function ScheduleListPage({
   schedules,
+  handleDelete,
   isLoading,
 }: {
   schedules: Schedule[];
+  handleDelete: (id: string) => void;
   isLoading: boolean;
 }) {
+  const { subject } = useAuthStore();
   const deleteMutation = useDeleteSchedule();
   const createMutation = useCreateSchedule();
   const updateMutation = useUpdateSchedule();
+
+  const agencyId = subject?.type === "agency" ? subject.data.id : undefined;
 
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -43,24 +53,33 @@ export default function ScheduleListPage({
     null
   );
 
-  const handleDelete = (id: string) => {
-    if (confirm("¿Estás seguro de que deseas eliminar este horario?")) {
-      deleteMutation.mutate(id);
-    }
-  };
-
   const handleEdit = (schedule: Schedule) => {
     setSelectedSchedule(schedule);
     setIsEditDialogOpen(true);
   };
 
-  const handleCreateSubmit = (data: any) => {
-    return createMutation.mutateAsync(data);
+  const handleUpdateSubmit = (data: UpdateSchedulePayload) => {
+    if (!selectedSchedule) return Promise.reject("No schedule selected");
+    return updateMutation.mutateAsync({ id: selectedSchedule.id, data });
   };
 
-  const handleUpdateSubmit = (data: any) => {
-    if (!selectedSchedule) return Promise.reject("No schedule selected");
-    return updateMutation.mutateAsync({ id: selectedSchedule.id, ...data });
+  const wrappedCreate = async (formValues: ScheduleFormValues) => {
+    if (!agencyId) {
+      return Promise.reject("No agency selected");
+    }
+
+    const payload: CreateSchedulePayload = {
+      agencyId: agencyId,
+      name: formValues.name,
+      daysOfWeek: formValues.daysOfWeek,
+      entryTime: formValues.entryTime,
+      exitTime: formValues.exitTime,
+      gracePeriodMinutes: formValues.gracePeriodMinutes,
+      isDefault: formValues.isDefault,
+      assignedUsersIds: [],
+    };
+
+    return createMutation.mutateAsync(payload);
   };
 
   if (isLoading) return <ScheduleListSkeleton />;
@@ -145,7 +164,7 @@ export default function ScheduleListPage({
       <ScheduleFormDialog
         open={isNewDialogOpen}
         onOpenChange={setIsNewDialogOpen}
-        onSubmit={handleCreateSubmit}
+        onSubmit={wrappedCreate}
         title="Crear Nuevo Horario"
         description="Completa los detalles para crear un nuevo horario de trabajo."
       />

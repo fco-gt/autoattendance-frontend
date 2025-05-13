@@ -1,11 +1,10 @@
 // app/api/auth/logout/route.ts
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import type { NextRequest } from "next/server";
 
 const COOKIE_NAME = "auth_token";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   const cookiesStore = await cookies();
   try {
     cookiesStore.delete(COOKIE_NAME);

@@ -38,7 +38,7 @@ interface EditUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: UserFrontend;
-  onSubmit: (data: EditUserFormValues) => Promise<any>;
+  onSubmit: (data: EditUserFormValues) => Promise<{ email: string }>;
   isLoading: boolean;
 }
 

@@ -1,9 +1,7 @@
 import { create } from "zustand";
-import type { UserFrontend, AgencyFrontend } from "@/types/FrontendTypes";
-
-type AuthenticatedSubject =
-  | { type: "user"; data: UserFrontend }
-  | { type: "agency"; data: AgencyFrontend };
+import type {
+  AuthenticatedSubject,
+} from "@/types/FrontendTypes";
 
 interface AuthState {
   subject: AuthenticatedSubject | null;

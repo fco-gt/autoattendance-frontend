@@ -38,7 +38,9 @@ export type InviteUserFormValues = z.infer<typeof inviteUserSchema>;
 interface InviteUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: InviteUserFormValues) => Promise<any>;
+  onSubmit: (
+    data: InviteUserFormValues
+  ) => Promise<{ email: string; name: string; lastname?: string | null }>;
   isLoading: boolean;
 }
 
