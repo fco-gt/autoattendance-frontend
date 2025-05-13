@@ -30,3 +30,15 @@ export async function registerUser(email: string, password: string) {
 
   return res;
 }
+
+export const activateUser = (activationCode: string, password: string) =>
+  apiClient<AuthUserResponse>("/users/activate", {
+    method: "POST",
+    body: JSON.stringify({ token: activationCode, password }),
+  });
+
+export const validateActivationToken = (activationCode: string) =>
+  apiClient<{ message: string; isValid?: boolean }>("/users/validate-token", {
+    method: "POST",
+    body: JSON.stringify({ token: activationCode }),
+  });
