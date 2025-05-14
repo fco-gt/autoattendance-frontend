@@ -1,6 +1,7 @@
 "use client";
 
 import type { Icon } from "@tabler/icons-react";
+import { usePathname } from "next/navigation";
 
 import {
   SidebarGroup,
@@ -20,16 +21,15 @@ export function NavMain({
     icon?: Icon;
   }[];
 }) {
+  const pathname = usePathname();
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                isActive={item.url === window.location.pathname}
-              >
+              <SidebarMenuButton asChild isActive={item.url === pathname}>
                 <Link href={item.url}>
                   {item.icon && (
                     <item.icon className="mr-2 h-5 w-5" aria-hidden="true" />
