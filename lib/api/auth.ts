@@ -23,7 +23,9 @@ export async function verifyMe(): Promise<AuthenticatedSubject | null> {
     });
 
     return res.data;
-  } catch (err) {
+  } catch (err: unknown) {
+    console.log(err);
+
     return null;
   }
 }

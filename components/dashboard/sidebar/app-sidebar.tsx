@@ -8,9 +8,7 @@ import {
   IconUsers,
   IconBuilding,
 } from "@tabler/icons-react";
-
 import type { Icon } from "@tabler/icons-react";
-
 import { NavMain } from "@/components/dashboard/sidebar/nav-main";
 import { NavUser } from "@/components/dashboard/sidebar/nav-user";
 import {
@@ -22,7 +20,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
 import { useAuthStore } from "@/stores/useAuth";
 
 type NavItem = {
@@ -55,7 +52,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const subject = useAuthStore((s) => s.subject);
   const user = subject?.type === "user" ? subject.data : undefined;
   const agency = subject?.type === "agency" ? subject.data : undefined;
-
   let navData: NavItem[] = [];
 
   if (user) {
@@ -64,9 +60,21 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     navData = agencyNavData;
   }
 
-  if (!subject) {
-    return null;
-  }
+  const renderSidebarContent = () => {
+    if (!subject) {
+      return <div>Cargando...</div>;
+    }
+
+    return <NavMain items={navData} />;
+  };
+
+  const renderSidebarFooter = () => {
+    if (!subject) {
+      return <div>Cargando...</div>;
+    }
+
+    return <NavUser user={user || agency} type={subject?.type} />;
+  };
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -90,14 +98,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-
-      <SidebarContent>
-        <NavMain items={navData} />
-      </SidebarContent>
-
-      <SidebarFooter>
-        <NavUser user={user || agency} type={subject?.type} />
-      </SidebarFooter>
+      <SidebarContent>{renderSidebarContent()}</SidebarContent>
+      <SidebarFooter>{renderSidebarFooter()}</SidebarFooter>
     </Sidebar>
   );
 }

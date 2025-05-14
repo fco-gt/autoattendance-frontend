@@ -124,3 +124,11 @@ export type CreateSchedulePayload = Omit<
 export type UpdateSchedulePayload = Partial<
   Omit<Schedule, "id" | "agencyId" | "createdAt" | "updatedAt">
 >;
+
+export type variants =
+  | "destructive"
+  | "outline"
+  | "default"
+  | "secondary"
+  | null
+  | undefined;

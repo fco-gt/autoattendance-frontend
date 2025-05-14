@@ -22,7 +22,7 @@ import { ScheduleListSkeleton } from "./schedule-list-skeleton";
 import {
   ScheduleFormDialog,
   ScheduleFormValues,
-} from "@/components/schedules/schedule-form-dialog";
+} from "@/components/agency/schedules/schedule-form-dialog";
 import type {
   CreateSchedulePayload,
   Schedule,

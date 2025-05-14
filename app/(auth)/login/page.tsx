@@ -20,13 +20,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 
+import { useAuthStore } from "@/stores/useAuth";
+
 import { loginUser } from "@/lib/api/users";
 import { loginAgency } from "@/lib/api/agencies";
-import { useAuthStore } from "@/stores/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const setSubject = useAuthStore((state) => state.setSubject);
+  const authStore = useAuthStore();
+
+  const { subject } = authStore;
 
   // Estado general
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -40,6 +43,13 @@ export default function LoginPage() {
   const [agencyEmail, setAgencyEmail] = useState("");
   const [agencyPassword, setAgencyPassword] = useState("");
 
+  if (subject) {
+    const routeTarget =
+      subject.type === "user" ? "/empleado/dashboard" : "/agencia/dashboard";
+    router.push(routeTarget);
+    return null;
+  }
+
   // User Handler
   const handleUserLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +58,6 @@ export default function LoginPage() {
 
     try {
       const response = await loginUser(userEmail, userPassword);
-      setSubject({ type: "user", data: response.user });
       toast(response.message || "Inicio de sesión exitoso");
       router.push("/empleado/dashboard");
     } catch (err: unknown) {
@@ -69,7 +78,6 @@ export default function LoginPage() {
 
     try {
       const response = await loginAgency(agencyEmail, agencyPassword);
-      setSubject({ type: "agency", data: response.agency });
       toast(response.message || "Inicio de sesión exitoso");
       router.push("/agencia/dashboard");
     } catch (err: unknown) {

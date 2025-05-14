@@ -1,7 +1,7 @@
 "use client";
 
 import { useSchedules, useDeleteSchedule } from "@/hooks/useSchedules";
-import ScheduleList from "@/components/schedules/schedule-list-table";
+import ScheduleList from "@/components/agency/schedules/schedule-list-table";
 
 export default function ScheduleListPage() {
   const { data: schedules, isLoading } = useSchedules();

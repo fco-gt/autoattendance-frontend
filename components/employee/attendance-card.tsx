@@ -12,6 +12,7 @@ import {
   AgencyFrontend,
   Attendance,
   UserFrontend,
+  variants,
 } from "@/types/FrontendTypes";
 
 import {
@@ -69,7 +70,7 @@ export default function AttendanceCard({
 
             {attendance?.status && (
               <Badge
-                variant={getStatusColor(attendance.status) as any}
+                variant={getStatusColor(attendance.status) as variants}
                 className="text-sm px-3 py-1"
               >
                 {getStatusText(attendance.status)}
