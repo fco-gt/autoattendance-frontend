@@ -2,8 +2,8 @@
 
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { MoreHorizontal, Pencil, Trash2, Mail } from "lucide-react";
-import type { UserFrontend } from "@/types/FrontendTypes";
+import { MoreHorizontal, Trash2, Mail } from "lucide-react";
+import { UserFrontendStatus, type UserFrontend } from "@/types/FrontendTypes";
 
 import {
   Table,
@@ -31,34 +31,23 @@ interface EmployeesTableProps {
   onDelete: (user: UserFrontend) => void;
 }
 
-type variants = "destructive" | "outline" | "default" | "secondary";
-
-// Función para obtener el color del badge según el estado
-const getStatusBadgeVariant = (status: string) => {
-  switch (status) {
-    case "ACTIVE":
-      return "success";
-    case "INACTIVE":
-      return "secondary";
-    case "PENDING":
-      return "warning";
-    default:
-      return "default";
-  }
-};
-
 // Función para obtener el texto del estado
-const getStatusText = (status: string) => {
-  switch (status) {
-    case "ACTIVE":
-      return "Activo";
-    case "INACTIVE":
-      return "Inactivo";
-    case "PENDING":
-      return "Pendiente";
-    default:
-      return status;
-  }
+const STATUS_CONFIG = {
+  [UserFrontendStatus.ACTIVE]: {
+    label: "Activo",
+    variant: "default" as const,
+    className: "bg-green-500 hover:bg-green-600",
+  },
+  [UserFrontendStatus.PENDING]: {
+    label: "Pendiente",
+    variant: "secondary" as const,
+    className: "bg-amber-500 text-white hover:bg-amber-600",
+  },
+  [UserFrontendStatus.INACTIVE]: {
+    label: "Inactivo",
+    variant: "outline" as const,
+    className: "",
+  },
 };
 
 // Función para obtener las iniciales del nombre
@@ -68,11 +57,7 @@ const getInitials = (name: string, lastname?: string | null) => {
   return (firstInitial + lastInitial).toUpperCase();
 };
 
-export function EmployeesTable({
-  users,
-  onEdit,
-  onDelete,
-}: EmployeesTableProps) {
+export function EmployeesTable({ users, onDelete }: EmployeesTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -106,8 +91,11 @@ export function EmployeesTable({
             </TableCell>
             <TableCell>{user.email}</TableCell>
             <TableCell>
-              <Badge variant={getStatusBadgeVariant(user.status) as variants}>
-                {getStatusText(user.status)}
+              <Badge
+                variant={STATUS_CONFIG[user.status].variant}
+                className={STATUS_CONFIG[user.status].className}
+              >
+                {STATUS_CONFIG[user.status].label}
               </Badge>
             </TableCell>
             <TableCell>
@@ -124,10 +112,6 @@ export function EmployeesTable({
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => onEdit(user)}>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Editar correo
-                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() =>
                       (window.location.href = `mailto:${user.email}`)

@@ -1,5 +1,6 @@
 import { Attendance } from "@/types/FrontendTypes";
 import { apiClient } from "./apiClient";
+import { GenerateQrResponse } from "@/types/api";
 
 // Manual
 export async function manualAttendance(body: {
@@ -33,5 +34,19 @@ export async function getAttendanceHistory(params: {
 export function getUserAttendanceToday(): Promise<Attendance> {
   return apiClient<Attendance>("/attendance/today", {
     method: "GET",
+  });
+}
+
+// Generate QR
+export async function generateQrLink(
+  type: "check-in" | "check-out"
+): Promise<GenerateQrResponse> {
+  return apiClient(`/attendance/qr/generate`, {
+    method: "POST",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ type }),
   });
 }

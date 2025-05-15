@@ -118,4 +118,12 @@
   body {
     @apply w-full overflow-x-hidden;
   }
+
+  button {
+    @apply cursor-pointer;
+  }
+
+  [role="button"] {
+    @apply cursor-pointer;
+  }
 }

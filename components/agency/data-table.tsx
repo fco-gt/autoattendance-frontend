@@ -220,16 +220,6 @@ export function UserTable({ users }: UserTableProps) {
                 Copiar ID
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Ver detalles</DropdownMenuItem>
-              <DropdownMenuItem>Editar usuario</DropdownMenuItem>
-              {user.status !== UserFrontendStatus.INACTIVE && (
-                <DropdownMenuItem className="text-destructive">
-                  Desactivar
-                </DropdownMenuItem>
-              )}
-              {user.status === UserFrontendStatus.INACTIVE && (
-                <DropdownMenuItem>Activar</DropdownMenuItem>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -319,7 +309,6 @@ export function UserTable({ users }: UserTableProps) {
                 </SelectContent>
               </Select>
             </div>
-            <Button>Agregar Usuario</Button>
           </div>
         </div>
       </CardHeader>

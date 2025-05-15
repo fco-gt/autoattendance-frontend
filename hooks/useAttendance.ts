@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  generateQrLink,
   getAttendanceHistory,
   getUserAttendanceToday,
   manualAttendance,
 } from "@/lib/api/attendances";
 import type { Attendance } from "@/types/FrontendTypes";
+import { GenerateQrResponse } from "@/types/api";
 
 type ManualAttendanceVariables = Parameters<typeof manualAttendance>[0];
 
@@ -37,5 +39,18 @@ export function useUserAttendanceToday() {
     queryFn: getUserAttendanceToday,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+  });
+}
+
+export function useGenerateQr() {
+  return useMutation<
+    GenerateQrResponse,
+    Error,
+    { type: "check-in" | "check-out" }
+  >({
+    mutationFn: (variable) => generateQrLink(variable.type),
+    onError: (err) => {
+      console.log(err);
+    },
   });
 }
