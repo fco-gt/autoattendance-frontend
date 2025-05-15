@@ -15,7 +15,7 @@ Este proyecto es una aplicación web que permite gestionar horarios de trabajo y
 
 ### Configuración de la API
 
-La API se encuentra en el repositorio [autoattendance-api](https://github.com/danielfdsilva/autoattendance-api).
+La API se encuentra en el repositorio [autoattendance-api](https://github.com/fco-gt/autoattendance-services). 
 
 Para configurar la API, sigue las instrucciones del repositorio.
 
