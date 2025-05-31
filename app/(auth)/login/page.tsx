@@ -59,7 +59,7 @@ export default function LoginPage() {
     try {
       const response = await loginUser(userEmail, userPassword);
       toast(response.message || "Inicio de sesión exitoso");
-      router.push("/empleado/dashboard");
+      router.push("/usuario/dashboard");
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";
