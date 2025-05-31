@@ -1,7 +1,7 @@
 import { apiClient } from "./apiClient";
 import { useAuthStore } from "@/stores/useAuth";
 import { setCookie } from "./auth";
-import type { AuthUserResponse } from "@/types/FrontendTypes";
+import type { AuthUserResponse, UserFrontend } from "@/types/FrontendTypes";
 
 export async function loginUser(email: string, password: string) {
   const res = await apiClient<AuthUserResponse>("/users/login", {
@@ -28,6 +28,16 @@ export async function registerUser(email: string, password: string) {
     await setCookie(res.token, "user");
   }
 
+  return res;
+}
+
+export async function updateUser(id: string, data: Partial<UserFrontend>) {
+  const res = await apiClient<UserFrontend>(`/users/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ ...data }),
+  });
+
+  useAuthStore.getState().setSubject({ type: "user", data: res });
   return res;
 }
 

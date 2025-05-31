@@ -17,6 +17,9 @@ export interface UserFrontend {
   lastname?: string | null;
   status: UserFrontendStatus;
   agencyId?: string | null;
+  homeLatitude?: number | null;
+  homeLongitude?: number | null;
+  homeRadiusMeters?: number | null;
   createdAt: string; // ISO 8601 string
   updatedAt: string; // ISO 8601 string
 }

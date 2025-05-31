@@ -15,9 +15,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmployeesTable } from "@/components/agency/employees/employees-table";
 import {
   InviteUserDialog,
-  InviteUserFormValues,
+  type InviteUserFormValues,
 } from "@/components/agency/employees/invite-user-dialog";
-import { EditUserDialog } from "@/components/agency/employees/edit-user-dialog";
+import {
+  EditUserDialog,
+  type EditUserFormValues,
+} from "@/components/agency/employees/edit-user-dialog";
 import { DeleteUserDialog } from "@/components/agency/employees/delete-user-dialog";
 import { EmployeesTableSkeleton } from "@/components/agency/employees/employees-table-skeleton";
 import type { UserFrontend } from "@/types/FrontendTypes";
@@ -55,9 +58,13 @@ export default function EPage() {
   };
 
   // Función para manejar la actualización de usuario
-  const handleUpdate = async (data: { email: string }) => {
-    if (!selectedUser) return Promise.reject("No user selected");
-    return updateMutation.mutateAsync({ id: selectedUser.id, ...data });
+  const handleUpdate = async (data: EditUserFormValues) => {
+    if (!selectedUser) return;
+
+    return await updateMutation.mutateAsync({
+      id: selectedUser.id,
+      data: { ...data },
+    });
   };
 
   // Función para manejar la eliminación de usuario

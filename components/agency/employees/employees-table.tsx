@@ -2,7 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
-import { MoreHorizontal, Trash2, Mail } from "lucide-react";
+import { MoreHorizontal, Trash2, Mail, Edit } from "lucide-react";
 import { UserFrontendStatus, type UserFrontend } from "@/types/FrontendTypes";
 
 import {
@@ -57,7 +57,11 @@ const getInitials = (name: string, lastname?: string | null) => {
   return (firstInitial + lastInitial).toUpperCase();
 };
 
-export function EmployeesTable({ users, onDelete }: EmployeesTableProps) {
+export function EmployeesTable({
+  users,
+  onEdit,
+  onDelete,
+}: EmployeesTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -111,7 +115,10 @@ export function EmployeesTable({ users, onDelete }: EmployeesTableProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => onEdit(user)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Editar
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() =>
                       (window.location.href = `mailto:${user.email}`)
