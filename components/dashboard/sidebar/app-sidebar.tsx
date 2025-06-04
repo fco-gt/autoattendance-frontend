@@ -50,6 +50,7 @@ const userNavData = [
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const subject = useAuthStore((s) => s.subject);
+  const logout = useAuthStore((s) => s.logout);
   const user = subject?.type === "user" ? subject.data : undefined;
   const agency = subject?.type === "agency" ? subject.data : undefined;
   let navData: NavItem[] = [];
@@ -73,7 +74,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       return <div>Cargando...</div>;
     }
 
-    return <NavUser user={user || agency} type={subject?.type} />;
+    return (
+      <NavUser user={user || agency} type={subject?.type} onLogout={logout} />
+    );
   };
 
   return (

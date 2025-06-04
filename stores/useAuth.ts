@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { AuthenticatedSubject } from "@/types/FrontendTypes";
+import { logout } from "@/lib/api/auth";
 
 interface AuthState {
   subject: AuthenticatedSubject | null;
@@ -12,7 +13,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   subject: null,
   isLoading: true,
   setSubject: (subject) => set({ subject }),
-  logout: () => set({ subject: null }),
+  logout: async () => {
+    const res = await logout();
+
+    if (res.status === 200) {
+      set({ subject: null });
+    }
+  },
 }));
 
 export const useAuthenticatedSubject = () =>

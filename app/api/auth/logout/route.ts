@@ -1,17 +1,24 @@
-// app/api/auth/logout/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-const COOKIE_NAME = "auth_token";
-
-export async function POST() {
+export async function POST(request: NextRequest) {
   const cookiesStore = await cookies();
   try {
-    cookiesStore.delete(COOKIE_NAME);
+    if (cookiesStore.get("auth_agency")) {
+      cookiesStore.delete("auth_agency");
+
+      return NextResponse.redirect(new URL("/agencia/login", request.url));
+    }
+
+    if (cookiesStore.get("auth_user")) {
+      cookiesStore.delete("auth_user");
+
+      return NextResponse.redirect(new URL("/usuario/login", request.url));
+    }
 
     return NextResponse.json(
-      { success: true, message: "Cookie borrada" },
-      { status: 200 }
+      { message: "No se encontró ninguna sesión" },
+      { status: 404 }
     );
   } catch (error) {
     console.error("Error al borrar la cookie:", error);
