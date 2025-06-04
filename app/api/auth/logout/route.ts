@@ -7,13 +7,19 @@ export async function POST(request: NextRequest) {
     if (cookiesStore.get("auth_agency")) {
       cookiesStore.delete("auth_agency");
 
-      return NextResponse.redirect(new URL("/agencia/login", request.url));
+      return NextResponse.json(
+        { message: "Sesión de agencia cerrada." },
+        { status: 200 }
+      );
     }
 
     if (cookiesStore.get("auth_user")) {
       cookiesStore.delete("auth_user");
 
-      return NextResponse.redirect(new URL("/usuario/login", request.url));
+      return NextResponse.json(
+        { message: "Sesión de usuario cerrada." },
+        { status: 200 }
+      );
     }
 
     return NextResponse.json(

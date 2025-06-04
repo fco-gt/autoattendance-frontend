@@ -21,6 +21,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuthStore } from "@/stores/useAuth";
+import { useRouter } from "next/navigation";
 
 type NavItem = {
   title: string;
@@ -49,11 +50,17 @@ const userNavData = [
 ];
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter();
   const subject = useAuthStore((s) => s.subject);
   const logout = useAuthStore((s) => s.logout);
   const user = subject?.type === "user" ? subject.data : undefined;
   const agency = subject?.type === "agency" ? subject.data : undefined;
   let navData: NavItem[] = [];
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   if (user) {
     navData = userNavData;
@@ -75,7 +82,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     }
 
     return (
-      <NavUser user={user || agency} type={subject?.type} onLogout={logout} />
+      <NavUser
+        user={user || agency}
+        type={subject?.type}
+        onLogout={handleLogout}
+      />
     );
   };
 

@@ -57,16 +57,6 @@ export function NavUser({ user, type, onLogout, onNavigate }: NavUserProps) {
       action: () =>
         onNavigate?.(type === "user" ? "/usuario/profile" : "/agencia/profile"),
     },
-    {
-      label: "Facturación",
-      icon: <IconCreditCard size={16} />,
-      action: () => onNavigate?.("/billing"),
-    },
-    {
-      label: "Notificaciones",
-      icon: <IconNotification size={16} />,
-      action: () => onNavigate?.("/notifications"),
-    },
   ];
 
   return (

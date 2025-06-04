@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Building2, Loader2, User, AlertCircle } from "lucide-react";
@@ -31,6 +31,14 @@ export default function LoginPage() {
 
   const { subject } = authStore;
 
+  useEffect(() => {
+    if (subject) {
+      const routeTarget =
+        subject.type === "user" ? "/empleado/dashboard" : "/agencia/dashboard";
+      router.push(routeTarget);
+    }
+  }, [subject]);
+
   // Estado general
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,13 +50,6 @@ export default function LoginPage() {
   // Datos de agencia
   const [agencyEmail, setAgencyEmail] = useState("");
   const [agencyPassword, setAgencyPassword] = useState("");
-
-  if (subject) {
-    const routeTarget =
-      subject.type === "user" ? "/empleado/dashboard" : "/agencia/dashboard";
-    router.push(routeTarget);
-    return null;
-  }
 
   // User Handler
   const handleUserLogin = async (e: React.FormEvent) => {
