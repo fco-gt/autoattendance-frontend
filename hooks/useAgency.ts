@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchAgencyUsers, inviteUser } from "@/lib/api/agencies";
+import {
+  fetchAgencyUsers,
+  inviteUser,
+  deleteAgencyUser,
+} from "@/lib/api/agencies";
 import { updateUser } from "@/lib/api/users";
 import type { UserFrontend } from "@/types/FrontendTypes";
 import { toast } from "sonner";
@@ -65,25 +69,28 @@ export const useUpdateUser = () => {
 
 // Hook para eliminar un usuario
 export const useDeleteUser = () => {
-  const [isPending, setIsPending] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const qc = useQueryClient();
 
-  const mutateAsync = async (id: string) => {
-    setIsPending(true);
-    try {
-      // Simular delay de red
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      setIsPending(false);
-      alert(`Usuario eliminado correctamente.`);
-      return { success: true, id };
-    } catch (err: unknown) {
-      setError(err as Error);
-      setIsPending(false);
-      alert(`Error al eliminar el usuario: ${err}`);
-      throw err;
-    }
-  };
-
-  return { mutateAsync, isPending, error };
+  return useMutation<UserFrontend, Error, string>({
+    mutationFn: async (id) => {
+      // deleteAgencyUser retorna el usuario eliminado
+      return await deleteAgencyUser(id);
+    },
+    onSuccess: (user) => {
+      // Invalida la lista para refetch
+      qc.invalidateQueries({ queryKey: ["agencyUsers"] });
+      toast.success("Usuario eliminado correctamente.", {
+        description: `El usuario ${user.name} ${
+          user.lastname || ""
+        } ha sido eliminado correctamente.`,
+        duration: 5000,
+      });
+    },
+    onError: (err) => {
+      toast.error("Error al eliminar el usuario.", {
+        description: `Error al eliminar el usuario: ${err.message}`,
+        duration: 3000,
+      });
+    },
+  });
 };

@@ -31,22 +31,112 @@ export default function AttendancePage() {
   // Renderizar estado de carga
   if (isLoading) {
     return (
-      <div className="p-4 max-w-3xl mx-auto">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-8 w-64 mb-2" />
-            <Skeleton className="h-6 w-48" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Skeleton className="h-24 w-full rounded-lg" />
-              <div className="grid grid-cols-2 gap-4">
-                <Skeleton className="h-16 w-full rounded-lg" />
-                <Skeleton className="h-16 w-full rounded-lg" />
+      <div className="flex flex-1 flex-col">
+        <div className="p-6 w-full mx-auto">
+          <Card className="w-full">
+            <CardHeader className="pb-6">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-6 w-6 rounded-full flex-shrink-0" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-6 w-64" />{" "}
+                  <Skeleton className="h-4 w-96 max-w-full" />{" "}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+
+            <CardContent className="space-y-6">
+              {/* Estado de asistencia Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-5 w-5 rounded flex-shrink-0" />
+                    <Skeleton className="h-5 w-44" />{" "}
+                    {/* "Estado de asistencia" */}
+                  </div>
+                  <Skeleton className="h-7 w-20 rounded-full" />{" "}
+                  {/* Status badge */}
+                </div>
+                <Skeleton className="h-4 w-40" /> {/* "Registro encontrado" */}
+              </div>
+
+              {/* Entrada y Salida Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Entrada Section */}
+                <div className="space-y-4 p-5 rounded-lg border border-border/50 bg-card">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-4 w-4 rounded flex-shrink-0" />
+                    <Skeleton className="h-5 w-20" /> {/* "Entrada" */}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-3 w-12" /> {/* "Hora:" */}
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4 rounded flex-shrink-0" />
+                        <Skeleton className="h-5 w-16" /> {/* Time "17:54" */}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-3 w-24" /> {/* "Programada:" */}
+                      <Skeleton className="h-4 w-16" /> {/* "09:00" */}
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-3 w-16" /> {/* "Método:" */}
+                      <Skeleton className="h-4 w-20" /> {/* "Manual" */}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Salida Section */}
+                <div className="space-y-4 p-5 rounded-lg border border-border/50 bg-card">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-4 w-4 rounded flex-shrink-0" />
+                    <Skeleton className="h-5 w-16" /> {/* "Salida" */}
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-3 w-12" /> {/* "Hora:" */}
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4 rounded flex-shrink-0" />
+                        <Skeleton className="h-5 w-16" /> {/* Time "17:55" */}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-3 w-24" /> {/* "Programada:" */}
+                      <Skeleton className="h-4 w-16" /> {/* "17:30" */}
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <Skeleton className="h-3 w-16" /> {/* "Método:" */}
+                      <Skeleton className="h-4 w-20" /> {/* "Manual" */}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notas Section */}
+              <div className="space-y-3 p-5 rounded-lg border border-border/50 bg-card">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-4 w-4 rounded flex-shrink-0" />
+                  <Skeleton className="h-5 w-16" /> {/* "Notas" */}
+                </div>
+                <Skeleton className="h-4 w-36" /> {/* "Entrada manual" */}
+              </div>
+            </CardContent>
+
+            {/* Footer Section */}
+            <CardFooter className="flex justify-between items-center pt-6 border-t border-border/50">
+              <Skeleton className="h-4 w-56" />{" "}
+              {/* "Última actualización: 6:49:23 p. m." */}
+              <Skeleton className="h-9 w-24 rounded-md" />{" "}
+              {/* "Actualizar" button */}
+            </CardFooter>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -54,7 +144,7 @@ export default function AttendancePage() {
   // Renderizar estado de error
   if (isError) {
     return (
-      <div className="p-4 max-w-3xl mx-auto">
+      <div className="flex flex-1 flex-col p-4 max-w-3xl mx-auto">
         <Card className="border-destructive/50">
           <CardHeader>
             <div className="flex items-center space-x-2">

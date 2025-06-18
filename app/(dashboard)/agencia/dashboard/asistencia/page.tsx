@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format, subDays } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { Calendar, Filter, QrCode, UserCheck, UserX } from "lucide-react";
 import {
   useAttendanceHistory,
@@ -9,6 +9,8 @@ import {
   useGenerateQr,
 } from "@/hooks/useAttendance";
 import { useAgencyUsers } from "@/hooks/useAgency";
+import * as XLSX from "xlsx";
+import { AttendanceStatus, AttendanceMethod } from "@/types/FrontendTypes";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +29,7 @@ import type { DateRange } from "react-day-picker";
 export default function AttendancePage() {
   const today = new Date();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(today, 7),
+    from: today,
     to: today,
   });
 
@@ -38,6 +40,7 @@ export default function AttendancePage() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [qrCodeValue, setQrCodeValue] = useState("");
   const [qrType, setQrType] = useState<"check-in" | "check-out">("check-in");
+  const [isExporting, setIsExporting] = useState(false);
 
   const apiDateRange = {
     startDate: format(dateRange?.from || today, "yyyy-MM-dd"),
@@ -91,6 +94,107 @@ export default function AttendancePage() {
     const user = users?.find((u) => u.id === userId);
     if (!user) return "Usuario desconocido";
     return `${user.name} ${user.lastname || ""}`.trim();
+  };
+
+  // Función para exportar a Excel
+  const exportToExcel = () => {
+    if (!history || history.length === 0) {
+      return;
+    }
+
+    setIsExporting(true);
+
+    try {
+      // Preparar los datos para Excel
+      const excelData = history.map((attendance, index) => ({
+        "#": index + 1,
+        Fecha: attendance.date, // Ya viene en formato YYYY-MM-DD
+        Usuario: getUserFullName(attendance.userId),
+        "Entrada Programada": attendance.scheduleEntryTime,
+        "Entrada Real": attendance.checkInTime,
+        "Salida Programada": attendance.scheduleExitTime,
+        "Salida Real": attendance.checkOutTime,
+        Estado:
+          attendance.status === AttendanceStatus.ON_TIME ? "A Tiempo" : "Tarde",
+        "Método Entrada":
+          attendance.methodIn === AttendanceMethod.MANUAL
+            ? "Manual"
+            : attendance.methodIn === AttendanceMethod.QR
+            ? "QR"
+            : attendance.methodIn === AttendanceMethod.NFC
+            ? "NFC"
+            : "-",
+        "Método Salida":
+          attendance.methodOut === AttendanceMethod.MANUAL
+            ? "Manual"
+            : attendance.methodOut === AttendanceMethod.QR
+            ? "QR"
+            : attendance.methodOut === AttendanceMethod.NFC
+            ? "NFC"
+            : "-",
+        Notas: attendance.notes || "-",
+      }));
+
+      // Crear el libro de trabajo
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+
+      // Configurar el ancho de las columnas
+      const columnWidths = [
+        { wch: 5 }, // #
+        { wch: 12 }, // Fecha
+        { wch: 25 }, // Usuario
+        { wch: 15 }, // Entrada Programada
+        { wch: 15 }, // Entrada Real
+        { wch: 15 }, // Salida Programada
+        { wch: 15 }, // Salida Real
+        { wch: 12 }, // Estado
+        { wch: 15 }, // Método Entrada
+        { wch: 15 }, // Método Salida
+        { wch: 30 }, // Notas
+      ];
+      worksheet["!cols"] = columnWidths;
+
+      // Agregar la hoja al libro
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Asistencias");
+
+      // Generar el nombre del archivo
+      const fileName = (() => {
+        const isToday =
+          dateRange?.from &&
+          dateRange?.to &&
+          isSameDay(dateRange.from, today) &&
+          isSameDay(dateRange.to, today);
+        const isSameDate =
+          dateRange?.from &&
+          dateRange?.to &&
+          isSameDay(dateRange.from, dateRange.to);
+
+        if (isToday) {
+          return `asistencias_hoy_${format(today, "dd-MM-yyyy")}.xlsx`;
+        } else if (isSameDate && dateRange?.from) {
+          return `asistencias_${format(dateRange.from, "dd-MM-yyyy")}.xlsx`;
+        } else if (dateRange?.from && dateRange?.to) {
+          return `asistencias_${format(
+            dateRange.from,
+            "dd-MM-yyyy"
+          )}_a_${format(dateRange.to, "dd-MM-yyyy")}.xlsx`;
+        } else {
+          return `asistencias_${format(today, "dd-MM-yyyy")}.xlsx`;
+        }
+      })();
+
+      // Descargar el archivo
+      XLSX.writeFile(workbook, fileName);
+
+      // Mostrar mensaje de éxito (opcional - puedes usar toast si tienes configurado)
+      console.log("Archivo exportado exitosamente:", fileName);
+    } catch (error) {
+      console.error("Error al exportar:", error);
+      // Aquí podrías mostrar un toast de error si tienes configurado
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -158,7 +262,69 @@ export default function AttendancePage() {
         <CardContent>
           {/* Sección de filtros */}
           <div className="mb-6">
-            <h3 className="text-lg font-medium mb-2 flex items-center">
+            {dateRange?.from && dateRange?.to && (
+              <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                <div className="flex items-start gap-3">
+                  <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                      {(() => {
+                        const isToday =
+                          isSameDay(dateRange.from, today) &&
+                          isSameDay(dateRange.to, today);
+                        const isSameDate = isSameDay(
+                          dateRange.from,
+                          dateRange.to
+                        );
+
+                        if (isToday) {
+                          return "📅 Registro de Hoy";
+                        } else if (isSameDate) {
+                          return "📊 Registro del Día";
+                        } else {
+                          return "📊 Período Seleccionado";
+                        }
+                      })()}
+                    </h4>
+                    <p className="text-sm text-slate-600 dark:text-slate-300">
+                      {(() => {
+                        const isToday =
+                          isSameDay(dateRange.from, today) &&
+                          isSameDay(dateRange.to, today);
+                        const isSameDate = isSameDay(
+                          dateRange.from,
+                          dateRange.to
+                        );
+
+                        if (isToday) {
+                          return `Visualizando las asistencias del día ${format(
+                            today,
+                            "dd/MM/yyyy"
+                          )}`;
+                        } else if (isSameDate) {
+                          return `Visualizando las asistencias del día ${format(
+                            dateRange.from,
+                            "dd/MM/yyyy"
+                          )}`;
+                        } else {
+                          return `Visualizando registros desde ${format(
+                            dateRange.from,
+                            "dd/MM/yyyy"
+                          )} hasta ${format(dateRange.to, "dd/MM/yyyy")}`;
+                        }
+                      })()}
+                    </p>
+                    {history && history.length > 0 && (
+                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">
+                        Total de registros: {history.length}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <h3 className="text-lg font-medium mb-2 flex items-center text-slate-900 dark:text-slate-100">
               <Filter className="mr-2 h-4 w-4" /> Filtros
             </h3>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -170,9 +336,46 @@ export default function AttendancePage() {
 
           {/* Sección de historial */}
           <div>
-            <h3 className="text-lg font-medium mb-4 flex items-center">
-              <Calendar className="mr-2 h-4 w-4" /> Historial de Asistencias
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+              <h3 className="text-lg font-medium flex items-center">
+                <Calendar className="mr-2 h-4 w-4" /> Historial de Asistencias
+              </h3>
+
+              {history && history.length > 0 && (
+                <Button
+                  onClick={exportToExcel}
+                  disabled={isExporting}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  {isExporting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                      Exportando...
+                    </>
+                  ) : (
+                    <>
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                        />
+                      </svg>
+                      Exportar a Excel
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
 
             {isLoading ? (
               <AttendanceHistorySkeleton />

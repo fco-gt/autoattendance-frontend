@@ -37,6 +37,18 @@ export function getUserAttendanceToday(): Promise<Attendance> {
   });
 }
 
+// Get User Attendance History
+export function getUserAttendanceHistory(params: {
+  startDate: string;
+  endDate: string;
+}): Promise<Attendance[]> {
+  const query = new URLSearchParams(params as Record<string, string>);
+
+  return apiClient<Attendance[]>(`/attendance/history/user?${query}`, {
+    method: "GET",
+  });
+}
+
 // Generate QR
 export async function generateQrLink(
   type: "check-in" | "check-out"

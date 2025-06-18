@@ -34,7 +34,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (subject) {
       const routeTarget =
-        subject.type === "user" ? "/empleado/dashboard" : "/agencia/dashboard";
+        subject.type === "user" ? "/usuario/dashboard" : "/agencia/dashboard";
       router.push(routeTarget);
     }
   }, [subject]);
@@ -59,7 +59,7 @@ export default function LoginPage() {
 
     try {
       const response = await loginUser(userEmail, userPassword);
-      toast(response.message || "Inicio de sesión exitoso");
+      toast.success(response.message || "Inicio de sesión exitoso");
       router.push("/usuario/dashboard");
     } catch (err: unknown) {
       const errorMessage =
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
     try {
       const response = await loginAgency(agencyEmail, agencyPassword);
-      toast(response.message || "Inicio de sesión exitoso");
+      toast.success(response.message || "Inicio de sesión exitoso");
       router.push("/agencia/dashboard");
     } catch (err: unknown) {
       const errorMessage =

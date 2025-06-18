@@ -36,7 +36,7 @@ const weekDays = [
   { value: 4, label: "Jueves" },
   { value: 5, label: "Viernes" },
   { value: 6, label: "Sábado" },
-  { value: 0, label: "Domingo" },
+  { value: 7, label: "Domingo" },
 ];
 
 // Esquema de validación con zod

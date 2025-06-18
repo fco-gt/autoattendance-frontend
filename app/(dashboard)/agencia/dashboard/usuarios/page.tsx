@@ -70,7 +70,8 @@ export default function EPage() {
   // Función para manejar la eliminación de usuario
   const handleDeleteConfirm = async () => {
     if (!selectedUser) return Promise.reject("No user selected");
-    return deleteMutation.mutateAsync(selectedUser.id);
+    const deletedUser = await deleteMutation.mutateAsync(selectedUser.id);
+    return { success: true, id: deletedUser.id };
   };
 
   // Filtrar usuarios según la búsqueda

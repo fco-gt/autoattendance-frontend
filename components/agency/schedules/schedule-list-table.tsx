@@ -18,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScheduleListSkeleton } from "./schedule-list-skeleton";
+import { ScheduleListSkeleton } from "@/components/agency/schedules/schedule-list-skeleton";
 import {
   ScheduleFormDialog,
   ScheduleFormValues,

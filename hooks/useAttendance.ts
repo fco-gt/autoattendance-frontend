@@ -3,10 +3,12 @@ import {
   generateQrLink,
   getAttendanceHistory,
   getUserAttendanceToday,
+  getUserAttendanceHistory,
   manualAttendance,
 } from "@/lib/api/attendances";
 import type { Attendance } from "@/types/FrontendTypes";
 import { GenerateQrResponse } from "@/types/api";
+import { toast } from "sonner";
 
 type ManualAttendanceVariables = Parameters<typeof manualAttendance>[0];
 
@@ -28,6 +30,15 @@ export function useManualAttendance() {
     mutationFn: (variables) => manualAttendance(variables),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["attendance"] });
+      toast.success("Asistencia registrada correctamente.", {
+        duration: 3000,
+      });
+    },
+    onError: (err) => {
+      toast.error("Error al registrar la asistencia.", {
+        description: err.message,
+        duration: 5000,
+      });
     },
   });
 }
@@ -39,6 +50,16 @@ export function useUserAttendanceToday() {
     queryFn: getUserAttendanceToday,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+  });
+}
+
+export function useUserAttendanceHistory(params: {
+  startDate: string;
+  endDate: string;
+}) {
+  return useQuery<Attendance[], Error>({
+    queryKey: ["attendanceHistory", params],
+    queryFn: () => getUserAttendanceHistory(params),
   });
 }
 

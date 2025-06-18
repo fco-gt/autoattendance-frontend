@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { registerAgency } from "@/lib/api/agencies";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -31,26 +32,40 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   // Versión de prueba sin llamadas reales
-  const handleRegisterStub = (e: React.FormEvent) => {
+  const handleRegisterStub = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast("Las contraseñas no coinciden", {
+      toast.error("Las contraseñas no coinciden", {
         description: "Por favor asegúrate de que las contraseñas coincidan.",
       });
       return;
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      toast("Registro de prueba exitoso", {
-        description:
-          "Esta es una respuesta simulada. Tu agencia ha sido registrada.",
+
+    try {
+      await registerAgency({
+        name,
+        domain,
+        password,
+        address,
+        phone,
       });
-      // simular redirección
-      router.push("/login");
-    }, 1000);
+
+      setIsLoading(false);
+      toast.success("Registro exitoso", {
+        description: "Tu agencia ha sido registrada. Redireccionando...",
+      });
+
+      router.push("/agencia/dashboard");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Error desconocido";
+      setIsLoading(false);
+      toast.error(errorMessage);
+      console.error(err);
+    }
   };
 
   return (

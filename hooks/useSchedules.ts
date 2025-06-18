@@ -7,6 +7,7 @@ import {
   deleteSchedule,
 } from "@/lib/api/schedules";
 import type { Schedule as ScheduleServiceType } from "@/types/FrontendTypes";
+import { toast } from "sonner";
 
 export type Schedule = ScheduleServiceType;
 
@@ -35,6 +36,15 @@ export function useCreateSchedule() {
     mutationFn: (newSchedule) => createSchedule(newSchedule),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["schedules"] });
+      toast.success("Horario creado correctamente.", {
+        duration: 5000,
+      });
+    },
+    onError: (err) => {
+      toast.error("Error al crear el horario.", {
+        description: err.message,
+        duration: 5000,
+      });
     },
   });
 }

@@ -161,7 +161,7 @@ export function EditUserDialog({
                     <FormItem>
                       <FormLabel>Correo electrónico</FormLabel>
                       <FormControl>
-                        <Input type="email" {...field} />
+                        <Input disabled type="email" {...field} />
                       </FormControl>
                       <FormDescription>
                         El usuario recibirá una notificación del cambio
