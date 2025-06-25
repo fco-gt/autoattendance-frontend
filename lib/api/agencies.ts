@@ -1,6 +1,10 @@
 import { apiClient } from "./apiClient";
 import { useAuthStore } from "@/stores/useAuth";
-import type { AuthAgencyResponse, UserFrontend } from "@/types/FrontendTypes";
+import type {
+  AgencyFrontend,
+  AuthAgencyResponse,
+  UserFrontend,
+} from "@/types/FrontendTypes";
 import { setCookie } from "./auth";
 
 export async function registerAgency(body: {
@@ -32,6 +36,21 @@ export async function loginAgency(domain: string, password: string) {
   if (res.token) {
     await setCookie(res.token, "agency");
   }
+  return res;
+}
+
+export async function updateAgency(body: {
+  name: string;
+  address?: string;
+  phone?: string;
+}): Promise<AgencyFrontend> {
+  const res = await apiClient<AgencyFrontend>(`/agencies`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+
+  useAuthStore.getState().setSubject({ type: "agency", data: res });
+
   return res;
 }
 

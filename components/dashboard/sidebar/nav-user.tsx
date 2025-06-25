@@ -1,9 +1,15 @@
 "use client";
 
+import type React from "react";
+import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import {
   IconDotsVertical,
   IconLogout,
   IconUserCircle,
+  IconMoon,
+  IconSun,
+  IconDeviceDesktop,
 } from "@tabler/icons-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,6 +20,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -22,13 +31,15 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { UserFrontend, AgencyFrontend } from "@/types/FrontendTypes";
+import type { UserFrontend, AgencyFrontend } from "@/types/FrontendTypes";
 
 interface NavUserProps {
   user?: UserFrontend | AgencyFrontend;
   type?: "user" | "agency";
   onLogout?: () => void;
   onNavigate?: (path: string) => void;
+  // Nueva prop para configurar rutas personalizadas
+  accountRoute?: string;
 }
 
 type MenuOption = {
@@ -37,8 +48,17 @@ type MenuOption = {
   action: () => void;
 };
 
-export function NavUser({ user, type, onLogout, onNavigate }: NavUserProps) {
+export function NavUser({
+  user,
+  type,
+  onLogout,
+  onNavigate,
+  accountRoute,
+}: NavUserProps) {
   const { isMobile } = useSidebar();
+  const { theme, setTheme } = useTheme();
+  const router = useRouter();
+
   if (!user) return null;
 
   // Decidir qué texto mostrar arriba
@@ -47,15 +67,88 @@ export function NavUser({ user, type, onLogout, onNavigate }: NavUserProps) {
       ? (user as UserFrontend).email
       : (user as AgencyFrontend).domain;
 
+  // Función de navegación mejorada con fallbacks
+  const handleNavigation = (path: string) => {
+    console.log(`Attempting to navigate to: ${path}`);
+
+    try {
+      // Prioridad 1: Usar onNavigate prop si está disponible
+      if (onNavigate) {
+        console.log("Using onNavigate prop");
+        onNavigate(path);
+        return;
+      }
+
+      // Prioridad 2: Usar Next.js router
+      console.log("Using Next.js router");
+      router.push(path);
+    } catch (error) {
+      console.error("Navigation error:", error);
+
+      // Fallback: Navegación nativa del navegador
+      console.log("Falling back to window.location");
+      window.location.href = path;
+    }
+  };
+
+  // Determinar la ruta de cuenta
+  const getAccountRoute = (): string => {
+    // Prioridad 1: Ruta personalizada
+    if (accountRoute) {
+      return accountRoute;
+    }
+
+    // Prioridad 3: Rutas específicas por tipo
+    return type === "user"
+      ? "/usuario/dashboard/cuenta"
+      : "/agencia/dashboard/cuenta";
+  };
+
   // Items dinámicos
   const menuOptions: MenuOption[] = [
     {
       label: "Cuenta",
       icon: <IconUserCircle size={16} />,
-      action: () =>
-        onNavigate?.(type === "user" ? "/usuario/profile" : "/agencia/profile"),
+      action: () => {
+        const route = getAccountRoute();
+        console.log(`Account route determined: ${route}`);
+        handleNavigation(route);
+      },
     },
   ];
+
+  // Opciones de tema
+  const themeOptions = [
+    {
+      label: "Claro",
+      value: "light",
+      icon: <IconSun size={16} />,
+    },
+    {
+      label: "Oscuro",
+      value: "dark",
+      icon: <IconMoon size={16} />,
+    },
+    {
+      label: "Sistema",
+      value: "system",
+      icon: <IconDeviceDesktop size={16} />,
+    },
+  ];
+
+  // Obtener el icono del tema actual
+  const getCurrentThemeIcon = () => {
+    switch (theme) {
+      case "light":
+        return <IconSun size={16} />;
+      case "dark":
+        return <IconMoon size={16} />;
+      case "system":
+        return <IconDeviceDesktop size={16} />;
+      default:
+        return <IconDeviceDesktop size={16} />;
+    }
+  };
 
   return (
     <SidebarMenu>
@@ -111,20 +204,51 @@ export function NavUser({ user, type, onLogout, onNavigate }: NavUserProps) {
               {menuOptions.map((opt) => (
                 <DropdownMenuItem
                   key={opt.label}
-                  onSelect={opt.action}
-                  className="flex items-center gap-2 px-3 py-2 text-sm"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    opt.action();
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer"
                 >
                   {opt.icon}
                   {opt.label}
                 </DropdownMenuItem>
               ))}
+
+              {/* Selector de Tema */}
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger className="flex items-center gap-2 px-3 py-2 text-sm">
+                  {getCurrentThemeIcon()}
+                  Tema
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="min-w-[140px] mb-5">
+                  {themeOptions.map((themeOption) => (
+                    <DropdownMenuItem
+                      key={themeOption.value}
+                      onSelect={() => setTheme(themeOption.value)}
+                      className="flex items-center gap-2 px-3 py-2 text-sm"
+                    >
+                      <div className="flex items-center gap-2 flex-1">
+                        {themeOption.icon}
+                        {themeOption.label}
+                      </div>
+                      {theme === themeOption.value && (
+                        <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 
             <DropdownMenuItem
-              onSelect={onLogout}
-              className="flex items-center gap-2 px-3 py-2 text-sm text-destructive"
+              onSelect={(e) => {
+                e.preventDefault();
+                onLogout?.();
+              }}
+              className="flex items-center gap-2 px-3 py-2 text-sm text-destructive cursor-pointer"
             >
               <IconLogout size={16} />
               Cerrar sesión

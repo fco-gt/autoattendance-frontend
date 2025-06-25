@@ -1,3 +1,5 @@
+"use client";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -38,6 +40,9 @@ export function ScheduleListSkeleton() {
                 <TableHead>
                   <Skeleton className="h-5 w-20" />
                 </TableHead>
+                <TableHead>
+                  <Skeleton className="h-5 w-32" /> {/* Usuarios Asignados */}
+                </TableHead>
                 <TableHead className="text-right">
                   <Skeleton className="h-5 w-20 ml-auto" />
                 </TableHead>
@@ -60,6 +65,16 @@ export function ScheduleListSkeleton() {
                   </TableCell>
                   <TableCell>
                     <Skeleton className="h-5 w-12" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-20" />
+                      <div className="flex gap-1">
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                        <Skeleton className="h-5 w-16 rounded-full" />
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

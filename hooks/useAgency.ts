@@ -1,14 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchAgencyUsers,
+  updateAgency,
   inviteUser,
   deleteAgencyUser,
 } from "@/lib/api/agencies";
 import { updateUser } from "@/lib/api/users";
-import type { UserFrontend } from "@/types/FrontendTypes";
+import type { AgencyFrontend, UserFrontend } from "@/types/FrontendTypes";
 import { toast } from "sonner";
-import { useState } from "react";
 
+type UpdateAgencyVariables = Parameters<typeof updateAgency>[0];
 type InviteUserVariables = Parameters<typeof inviteUser>[0];
 type UpdateUserVariables = {
   id: string;
@@ -19,6 +20,30 @@ export function useAgencyUsers() {
   return useQuery<UserFrontend[], Error>({
     queryKey: ["agencyUsers"],
     queryFn: fetchAgencyUsers,
+  });
+}
+
+export function useUpdateAgency() {
+  const qc = useQueryClient();
+
+  return useMutation<AgencyFrontend, Error, UpdateAgencyVariables>({
+    mutationFn: (variables) => updateAgency(variables),
+    onSuccess: (updatedAgency) => {
+      // Invalidar tanto lista como detalle
+      qc.invalidateQueries({ queryKey: ["agency"] });
+      qc.invalidateQueries({ queryKey: ["agency", updatedAgency.id] });
+
+      toast.success("Agencia actualizada correctamente.", {
+        description: `La agencia ${updatedAgency.name} ha sido actualizada.`,
+        duration: 5000,
+      });
+    },
+    onError: (err) => {
+      toast.error("Error al actualizar la agencia.", {
+        description: err.message,
+        duration: 3000,
+      });
+    },
   });
 }
 

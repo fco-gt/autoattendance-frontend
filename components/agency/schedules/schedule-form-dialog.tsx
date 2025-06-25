@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import type { Schedule } from "@/types/FrontendTypes";
-import { Clock, Save } from "lucide-react";
+import { Clock, Save, Users, X } from "lucide-react";
+import { useAgencyUsers } from "@/hooks/useAgency";
 
 import {
   Dialog,
@@ -27,6 +28,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 // Días de la semana para mostrar en el formulario
 const weekDays = [
@@ -62,6 +79,7 @@ const scheduleFormSchema = z.object({
     .min(0, "La tolerancia no puede ser negativa")
     .max(60, "La tolerancia no puede ser mayor a 60 minutos"),
   isDefault: z.boolean(),
+  assignedUsersIds: z.array(z.string()).optional(),
 });
 
 export type ScheduleFormValues = z.infer<typeof scheduleFormSchema>;
@@ -84,6 +102,10 @@ export function ScheduleFormDialog({
   description,
 }: ScheduleFormDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userSelectorOpen, setUserSelectorOpen] = useState(false);
+
+  // Fetch users from the agency
+  const { data: users, isLoading: usersLoading } = useAgencyUsers();
 
   // Valores por defecto para el formulario
   const defaultValues: Partial<ScheduleFormValues> = {
@@ -93,12 +115,30 @@ export function ScheduleFormDialog({
     exitTime: schedule?.exitTime || "17:00",
     gracePeriodMinutes: schedule?.gracePeriodMinutes || 5,
     isDefault: schedule?.isDefault || false,
+    assignedUsersIds: schedule?.assignedUsersIds || [],
   };
 
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(scheduleFormSchema),
     defaultValues,
   });
+
+  // Reset form when schedule changes
+  useEffect(() => {
+    if (schedule) {
+      form.reset({
+        name: schedule.name,
+        daysOfWeek: schedule.daysOfWeek,
+        entryTime: schedule.entryTime,
+        exitTime: schedule.exitTime,
+        gracePeriodMinutes: schedule.gracePeriodMinutes,
+        isDefault: schedule.isDefault,
+        assignedUsersIds: schedule.assignedUsersIds,
+      });
+    } else {
+      form.reset(defaultValues);
+    }
+  }, [schedule, form]);
 
   const handleSubmit = async (data: ScheduleFormValues) => {
     setIsSubmitting(true);
@@ -113,9 +153,17 @@ export function ScheduleFormDialog({
     }
   };
 
+  const getUserFullName = (userId: string) => {
+    const user = users?.find((u) => u.id === userId);
+    if (!user) return "Usuario desconocido";
+    return `${user.name} ${user.lastname || ""}`.trim();
+  };
+
+  const selectedUserIds = form.watch("assignedUsersIds") || [];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -248,6 +296,136 @@ export function ScheduleFormDialog({
                   <FormDescription>
                     Minutos de tolerancia permitidos para la entrada
                   </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* User Assignment Section */}
+            <FormField
+              control={form.control}
+              name="assignedUsersIds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Usuarios asignados</FormLabel>
+                  <FormDescription>
+                    Selecciona los usuarios que tendrán este horario
+                  </FormDescription>
+
+                  {usersLoading ? (
+                    <div className="space-y-2">
+                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-6 w-32" />
+                    </div>
+                  ) : (
+                    <>
+                      <Popover
+                        open={userSelectorOpen}
+                        onOpenChange={setUserSelectorOpen}
+                      >
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between"
+                              aria-expanded={userSelectorOpen}
+                            >
+                              <div className="flex items-center gap-2">
+                                <Users className="h-4 w-4" />
+                                {selectedUserIds.length === 0
+                                  ? "Seleccionar usuarios..."
+                                  : `${selectedUserIds.length} usuario(s) seleccionado(s)`}
+                              </div>
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Buscar usuarios..." />
+                            <CommandList>
+                              <CommandEmpty>
+                                No se encontraron usuarios.
+                              </CommandEmpty>
+                              <CommandGroup>
+                                <ScrollArea className="h-48">
+                                  {users?.map((user) => (
+                                    <CommandItem
+                                      key={user.id}
+                                      onSelect={() => {
+                                        const currentIds = field.value || [];
+                                        const isSelected = currentIds.includes(
+                                          user.id
+                                        );
+
+                                        if (isSelected) {
+                                          field.onChange(
+                                            currentIds.filter(
+                                              (id) => id !== user.id
+                                            )
+                                          );
+                                        } else {
+                                          field.onChange([
+                                            ...currentIds,
+                                            user.id,
+                                          ]);
+                                        }
+                                      }}
+                                    >
+                                      <div className="flex items-center space-x-2 w-full">
+                                        <Checkbox
+                                          checked={selectedUserIds.includes(
+                                            user.id
+                                          )}
+                                        />
+                                        <div className="flex-1">
+                                          <p className="font-medium">
+                                            {user.name} {user.lastname}
+                                          </p>
+                                          <p className="text-sm text-muted-foreground">
+                                            {user.email}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </ScrollArea>
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+
+                      {/* Selected Users Display */}
+                      {selectedUserIds.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {selectedUserIds.map((userId) => (
+                            <Badge
+                              key={userId}
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
+                              {getUserFullName(userId)}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto p-0 ml-1"
+                                onClick={() => {
+                                  const currentIds = field.value || [];
+                                  field.onChange(
+                                    currentIds.filter((id) => id !== userId)
+                                  );
+                                }}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

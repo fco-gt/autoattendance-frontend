@@ -36,6 +36,7 @@ export interface AgencyFrontend {
   isActive: boolean;
   createdAt: string; // ISO 8601 string
   updatedAt: string; // ISO 8601 string
+  passwordHash?: string | null; // Solo para editar la contraseña
 }
 
 /**

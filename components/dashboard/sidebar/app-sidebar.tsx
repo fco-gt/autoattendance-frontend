@@ -46,7 +46,11 @@ const agencyNavData = [
 
 const userNavData = [
   { title: "Dashboard", url: "/usuario/dashboard", icon: IconDashboard },
-  { title: "Historial de Asistencias", url: "/usuario/dashboard/historial", icon: IconChartBar },
+  {
+    title: "Historial de Asistencias",
+    url: "/usuario/dashboard/historial",
+    icon: IconChartBar,
+  },
 ];
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {

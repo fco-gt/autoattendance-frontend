@@ -6,7 +6,8 @@ import {
   useCreateSchedule,
   useUpdateSchedule,
 } from "@/hooks/useSchedules";
-import { PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, Users } from "lucide-react";
+import { useAgencyUsers } from "@/hooks/useAgency";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,10 +19,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ScheduleListSkeleton } from "@/components/agency/schedules/schedule-list-skeleton";
 import {
   ScheduleFormDialog,
-  ScheduleFormValues,
+  type ScheduleFormValues,
 } from "@/components/agency/schedules/schedule-form-dialog";
 import type {
   CreateSchedulePayload,
@@ -41,6 +43,7 @@ export default function ScheduleListPage({
   isLoading: boolean;
 }) {
   const { subject } = useAuthStore();
+  const { data: users } = useAgencyUsers();
   const deleteMutation = useDeleteSchedule();
   const createMutation = useCreateSchedule();
   const updateMutation = useUpdateSchedule();
@@ -58,9 +61,23 @@ export default function ScheduleListPage({
     setIsEditDialogOpen(true);
   };
 
-  const handleUpdateSubmit = (data: UpdateSchedulePayload) => {
+  const handleUpdateSubmit = (data: ScheduleFormValues) => {
     if (!selectedSchedule) return Promise.reject("No schedule selected");
-    return updateMutation.mutateAsync({ id: selectedSchedule.id, data });
+
+    const updateData: UpdateSchedulePayload = {
+      name: data.name,
+      daysOfWeek: data.daysOfWeek,
+      entryTime: data.entryTime,
+      exitTime: data.exitTime,
+      gracePeriodMinutes: data.gracePeriodMinutes,
+      isDefault: data.isDefault,
+      assignedUsersIds: data.assignedUsersIds || [],
+    };
+
+    return updateMutation.mutateAsync({
+      id: selectedSchedule.id,
+      data: updateData,
+    });
   };
 
   const wrappedCreate = async (formValues: ScheduleFormValues) => {
@@ -76,10 +93,16 @@ export default function ScheduleListPage({
       exitTime: formValues.exitTime,
       gracePeriodMinutes: formValues.gracePeriodMinutes,
       isDefault: formValues.isDefault,
-      assignedUsersIds: [],
+      assignedUsersIds: formValues.assignedUsersIds || [],
     };
 
     return createMutation.mutateAsync(payload);
+  };
+
+  const getUserFullName = (userId: string) => {
+    const user = users?.find((u) => u.id === userId);
+    if (!user) return "Usuario desconocido";
+    return `${user.name} ${user.lastname || ""}`.trim();
   };
 
   if (isLoading) return <ScheduleListSkeleton />;
@@ -103,6 +126,7 @@ export default function ScheduleListPage({
                 <TableHead>Entrada</TableHead>
                 <TableHead>Salida</TableHead>
                 <TableHead>Tolerancia</TableHead>
+                <TableHead>Usuarios Asignados</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -110,7 +134,7 @@ export default function ScheduleListPage({
               {schedules?.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-6 text-muted-foreground"
                   >
                     No hay horarios registrados
@@ -131,6 +155,33 @@ export default function ScheduleListPage({
                     <TableCell>{s.entryTime}</TableCell>
                     <TableCell>{s.exitTime}</TableCell>
                     <TableCell>{s.gracePeriodMinutes} min</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {s.assignedUsersIds?.length || 0} usuario(s)
+                        </span>
+                        {s.assignedUsersIds &&
+                          s.assignedUsersIds.length > 0 && (
+                            <div className="flex flex-wrap gap-1 max-w-48">
+                              {s.assignedUsersIds.slice(0, 2).map((userId) => (
+                                <Badge
+                                  key={userId}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {getUserFullName(userId)}
+                                </Badge>
+                              ))}
+                              {s.assignedUsersIds.length > 2 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{s.assignedUsersIds.length - 2} más
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
