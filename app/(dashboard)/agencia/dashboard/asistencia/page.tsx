@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format, isSameDay } from "date-fns";
-import { Calendar, Filter, QrCode, UserCheck, UserX } from "lucide-react";
+import { Calendar, QrCode, UserCheck, UserX, Users } from "lucide-react";
 import {
   useAttendanceHistory,
   useManualAttendance,
@@ -14,23 +14,42 @@ import { AttendanceStatus, AttendanceMethod } from "@/types/FrontendTypes";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DatePickerWithRange } from "@/components/agency/attendances/date-range-picker";
 import { AttendanceTable } from "@/components/agency/attendances/attendance-list-table";
 import { AttendanceFormDialog } from "@/components/agency/attendances/attendance-form-dialog";
 import { AttendanceHistorySkeleton } from "@/components/agency/attendances/attendance-history-skeleton";
 import { QRCodeModal } from "@/components/agency/attendances/qr-code-modal";
+import { AttendanceFilters } from "@/components/agency/attendances/attendance-filters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 import type { AttendanceFormValues } from "@/components/agency/attendances/attendance-form-dialog";
 import type { DateRange } from "react-day-picker";
+
+export interface FilterState {
+  userSearch: string;
+  selectedUserId: string;
+  status: string;
+  entryMethod: string;
+  exitMethod: string;
+}
 
 export default function AttendancePage() {
   const today = new Date();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: today,
     to: today,
+  });
+
+  // Filter states
+  const [filters, setFilters] = useState<FilterState>({
+    userSearch: "",
+    selectedUserId: "",
+    status: "",
+    entryMethod: "",
+    exitMethod: "",
   });
 
   const [isAttendanceDialogOpen, setIsAttendanceDialogOpen] = useState(false);
@@ -56,6 +75,101 @@ export default function AttendancePage() {
   const { data: users, isLoading: usersLoading } = useAgencyUsers();
   const manual = useManualAttendance();
   const qrMutation = useGenerateQr();
+
+  // Filter users based on search
+  const filteredUsers = useMemo(() => {
+    if (!users) return [];
+    if (!filters.userSearch) return users;
+
+    const searchTerm = filters.userSearch.toLowerCase();
+    return users.filter(
+      (user) =>
+        user.id.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm) ||
+        user.name.toLowerCase().includes(searchTerm) ||
+        (user.lastname && user.lastname.toLowerCase().includes(searchTerm))
+    );
+  }, [users, filters.userSearch]);
+
+  // Filter attendance records
+  const filteredAttendance = useMemo(() => {
+    if (!history) return [];
+
+    return history.filter((attendance) => {
+      // User filter
+      if (
+        filters.selectedUserId &&
+        attendance.userId !== filters.selectedUserId
+      ) {
+        return false;
+      }
+
+      // User search filter (if no specific user selected)
+      if (!filters.selectedUserId && filters.userSearch) {
+        const user = users?.find((u) => u.id === attendance.userId);
+        if (user) {
+          const searchTerm = filters.userSearch.toLowerCase();
+          const matchesSearch =
+            user.id.toLowerCase().includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm) ||
+            user.name.toLowerCase().includes(searchTerm) ||
+            (user.lastname && user.lastname.toLowerCase().includes(searchTerm));
+
+          if (!matchesSearch) return false;
+        }
+      }
+
+      // Status filter
+      if (filters.status && attendance.status !== filters.status) {
+        return false;
+      }
+
+      // Entry method filter
+      if (filters.entryMethod && attendance.methodIn !== filters.entryMethod) {
+        return false;
+      }
+
+      // Exit method filter
+      if (filters.exitMethod && attendance.methodOut !== filters.exitMethod) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [history, filters, users]);
+
+  // Count active filters
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (filters.userSearch) count++;
+    if (filters.selectedUserId) count++;
+    if (filters.status) count++;
+    if (filters.entryMethod) count++;
+    if (filters.exitMethod) count++;
+    return count;
+  }, [filters]);
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setFilters({
+      userSearch: "",
+      selectedUserId: "",
+      status: "",
+      entryMethod: "",
+      exitMethod: "",
+    });
+  };
+
+  // Update filter function
+  const updateFilter = (key: keyof FilterState, value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value,
+      // Clear selectedUserId when userSearch changes and vice versa
+      ...(key === "userSearch" && value ? { selectedUserId: "" } : {}),
+      ...(key === "selectedUserId" && value ? { userSearch: "" } : {}),
+    }));
+  };
 
   // Función para abrir el modal de asistencia manual
   const openAttendanceDialog = (type: "check-in" | "check-out") => {
@@ -98,7 +212,7 @@ export default function AttendancePage() {
 
   // Función para exportar a Excel
   const exportToExcel = () => {
-    if (!history || history.length === 0) {
+    if (!filteredAttendance || filteredAttendance.length === 0) {
       return;
     }
 
@@ -106,9 +220,9 @@ export default function AttendancePage() {
 
     try {
       // Preparar los datos para Excel
-      const excelData = history.map((attendance, index) => ({
+      const excelData = filteredAttendance.map((attendance, index) => ({
         "#": index + 1,
-        Fecha: attendance.date, // Ya viene en formato YYYY-MM-DD
+        Fecha: attendance.date,
         Usuario: getUserFullName(attendance.userId),
         "Entrada Programada": attendance.scheduleEntryTime,
         "Entrada Real": attendance.checkInTime,
@@ -121,6 +235,8 @@ export default function AttendancePage() {
             ? "Manual"
             : attendance.methodIn === AttendanceMethod.QR
             ? "QR"
+            : attendance.methodIn === AttendanceMethod.TELEWORK
+            ? "Teletrabajo"
             : attendance.methodIn === AttendanceMethod.NFC
             ? "NFC"
             : "-",
@@ -129,6 +245,8 @@ export default function AttendancePage() {
             ? "Manual"
             : attendance.methodOut === AttendanceMethod.QR
             ? "QR"
+            : attendance.methodOut === AttendanceMethod.TELEWORK
+            ? "Teletrabajo"
             : attendance.methodOut === AttendanceMethod.NFC
             ? "NFC"
             : "-",
@@ -187,11 +305,9 @@ export default function AttendancePage() {
       // Descargar el archivo
       XLSX.writeFile(workbook, fileName);
 
-      // Mostrar mensaje de éxito (opcional - puedes usar toast si tienes configurado)
       console.log("Archivo exportado exitosamente:", fileName);
     } catch (error) {
       console.error("Error al exportar:", error);
-      // Aquí podrías mostrar un toast de error si tienes configurado
     } finally {
       setIsExporting(false);
     }
@@ -260,94 +376,105 @@ export default function AttendancePage() {
         </CardHeader>
 
         <CardContent>
-          {/* Sección de filtros */}
-          <div className="mb-6">
-            {dateRange?.from && dateRange?.to && (
-              <div className="mb-4 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
-                <div className="flex items-start gap-3">
-                  <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
-                      {(() => {
-                        const isToday =
-                          isSameDay(dateRange.from, today) &&
-                          isSameDay(dateRange.to, today);
-                        const isSameDate = isSameDay(
-                          dateRange.from,
-                          dateRange.to
-                        );
+          {/* Date Range Section */}
+          {dateRange?.from && dateRange?.to && (
+            <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <h4 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                    {(() => {
+                      const isToday =
+                        isSameDay(dateRange.from, today) &&
+                        isSameDay(dateRange.to, today);
+                      const isSameDate = isSameDay(
+                        dateRange.from,
+                        dateRange.to
+                      );
 
-                        if (isToday) {
-                          return "📅 Registro de Hoy";
-                        } else if (isSameDate) {
-                          return "📊 Registro del Día";
-                        } else {
-                          return "📊 Período Seleccionado";
-                        }
-                      })()}
-                    </h4>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">
-                      {(() => {
-                        const isToday =
-                          isSameDay(dateRange.from, today) &&
-                          isSameDay(dateRange.to, today);
-                        const isSameDate = isSameDay(
-                          dateRange.from,
-                          dateRange.to
-                        );
+                      if (isToday) {
+                        return "📅 Registro de Hoy";
+                      } else if (isSameDate) {
+                        return "📊 Registro del Día";
+                      } else {
+                        return "📊 Período Seleccionado";
+                      }
+                    })()}
+                  </h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">
+                    {(() => {
+                      const isToday =
+                        isSameDay(dateRange.from, today) &&
+                        isSameDay(dateRange.to, today);
+                      const isSameDate = isSameDay(
+                        dateRange.from,
+                        dateRange.to
+                      );
 
-                        if (isToday) {
-                          return `Visualizando las asistencias del día ${format(
-                            today,
-                            "dd/MM/yyyy"
-                          )}`;
-                        } else if (isSameDate) {
-                          return `Visualizando las asistencias del día ${format(
-                            dateRange.from,
-                            "dd/MM/yyyy"
-                          )}`;
-                        } else {
-                          return `Visualizando registros desde ${format(
-                            dateRange.from,
-                            "dd/MM/yyyy"
-                          )} hasta ${format(dateRange.to, "dd/MM/yyyy")}`;
-                        }
-                      })()}
+                      if (isToday) {
+                        return `Visualizando las asistencias del día ${format(
+                          today,
+                          "dd/MM/yyyy"
+                        )}`;
+                      } else if (isSameDate) {
+                        return `Visualizando las asistencias del día ${format(
+                          dateRange.from,
+                          "dd/MM/yyyy"
+                        )}`;
+                      } else {
+                        return `Visualizando registros desde ${format(
+                          dateRange.from,
+                          "dd/MM/yyyy"
+                        )} hasta ${format(dateRange.to, "dd/MM/yyyy")}`;
+                      }
+                    })()}
+                  </p>
+                  {filteredAttendance && filteredAttendance.length > 0 && (
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">
+                      {filteredAttendance.length === history?.length
+                        ? `Total de registros: ${filteredAttendance.length}`
+                        : `Mostrando ${filteredAttendance.length} de ${history?.length} registros`}
                     </p>
-                    {history && history.length > 0 && (
-                      <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">
-                        Total de registros: {history.length}
-                      </p>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
-            )}
-
-            <h3 className="text-lg font-medium mb-2 flex items-center text-slate-900 dark:text-slate-100">
-              <Filter className="mr-2 h-4 w-4" /> Filtros
-            </h3>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <DatePickerWithRange date={dateRange} setDate={setDateRange} />
-              </div>
             </div>
-          </div>
+          )}
 
-          {/* Sección de historial */}
+          {/* Enhanced Filters Section */}
+          <AttendanceFilters
+            filters={filters}
+            updateFilter={updateFilter}
+            clearAllFilters={clearAllFilters}
+            activeFiltersCount={activeFiltersCount}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            filteredUsers={filteredUsers}
+            getUserFullName={getUserFullName}
+          />
+
+          <Separator className="my-6" />
+
+          {/* Attendance History Section */}
           <div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <h3 className="text-lg font-medium flex items-center">
-                <Calendar className="mr-2 h-4 w-4" /> Historial de Asistencias
+                <Calendar className="mr-2 h-4 w-4" />
+                Historial de Asistencias
+                {filteredAttendance && filteredAttendance.length > 0 && (
+                  <Badge variant="outline" className="ml-2">
+                    {filteredAttendance.length}
+                  </Badge>
+                )}
               </h3>
 
-              {history && history.length > 0 && (
+              {filteredAttendance && filteredAttendance.length > 0 && (
                 <Button
                   onClick={exportToExcel}
                   disabled={isExporting}
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 bg-transparent"
                 >
                   {isExporting ? (
                     <>
@@ -387,13 +514,31 @@ export default function AttendancePage() {
                   No se pudo cargar el historial: {error.message}
                 </AlertDescription>
               </Alert>
-            ) : history?.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No hay registros de asistencia en el período seleccionado
+            ) : filteredAttendance?.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                  No hay registros
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {activeFiltersCount > 0
+                    ? "No se encontraron registros que coincidan con los filtros aplicados."
+                    : "No hay registros de asistencia en el período seleccionado."}
+                </p>
+                {activeFiltersCount > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearAllFilters}
+                    className="mt-4 bg-transparent"
+                  >
+                    Limpiar filtros
+                  </Button>
+                )}
               </div>
             ) : (
               <AttendanceTable
-                attendances={history || []}
+                attendances={filteredAttendance || []}
                 getUserName={getUserFullName}
               />
             )}

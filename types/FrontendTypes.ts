@@ -118,6 +118,7 @@ export enum AttendanceStatus {
 export enum AttendanceMethod {
   MANUAL = "MANUAL",
   QR = "QR",
+  TELEWORK = "TELEWORK",
   NFC = "NFC",
 }
 

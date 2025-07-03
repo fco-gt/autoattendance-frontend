@@ -27,6 +27,8 @@ export const getMethodText = (method: AttendanceMethod) => {
       return "Manual";
     case "QR":
       return "Código QR";
+    case "TELEWORK":
+      return "Remoto";
     case "NFC":
       return "NFC";
     default:
